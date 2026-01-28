@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Turnos.App.Models;
 using Turnos.Data;
-
 namespace Turnos.App;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
