@@ -13,6 +13,17 @@
                 <!-- Secondary Color (Lime) - ruta Recommended para MaterialDesign v5 -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Fallbacks para recursos que puedan faltar -->
+            <Style x:Key="MaterialDesignBody1TextBlock" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+            
+            <Style x:Key="MaterialDesignDataGridTextColumnStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

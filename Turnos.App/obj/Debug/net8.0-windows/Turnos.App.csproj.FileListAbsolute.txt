@@ -74,7 +74,6 @@ D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Mai
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\App.g.cs
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_Content.g.cs
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_MarkupCompile.cache
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_MarkupCompile.lref
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\refint\Turnos.App.dll
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.pdb
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\appsettings.json

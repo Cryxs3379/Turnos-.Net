@@ -80,10 +80,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Debug.WriteLine("=== Iniciando carga de datos ===");
             txtEstado.Text = "Cargando...";
             btnCargar.IsEnabled = false;
+            progressBar.Visibility = Visibility.Visible;
 
             var fechaInicio = dpFechaInicio.SelectedDate ?? new DateTime(2026, 2, 2);
             var fechaFin = dpFechaFin.SelectedDate ?? new DateTime(2026, 2, 8);
-            var lugar = cmbLugar.SelectedItem?.ToString() ?? "AER";
+            var lugar = cmbLugar.SelectedItem?.ToString() ?? cmbLugar.Text ?? "AER";
 
             // Entradas Parking
             try
@@ -301,6 +302,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         finally
         {
             btnCargar.IsEnabled = true;
+            progressBar.Visibility = Visibility.Collapsed;
             if (_cancellationTokenSource != null)
             {
                 _cancellationTokenSource.Dispose();
