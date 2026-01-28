@@ -68,14 +68,6 @@ D:\Hellehollis\Nikole Turnos\Turnos.App\bin\Debug\net8.0-windows\System.IO.Pipel
 D:\Hellehollis\Nikole Turnos\Turnos.App\bin\Debug\net8.0-windows\System.Text.Encodings.Web.dll
 D:\Hellehollis\Nikole Turnos\Turnos.App\bin\Debug\net8.0-windows\System.Text.Json.dll
 D:\Hellehollis\Nikole Turnos\Turnos.App\bin\Debug\net8.0-windows\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.csproj.AssemblyReference.cache
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\App.g.cs
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_Content.g.cs
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_MarkupCompile.cache
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_MarkupCompile.lref
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.dll
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\refint\Turnos.App.dll
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.pdb
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\appsettings.json
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\Turnos.App.exe
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\Turnos.App.deps.json
@@ -132,8 +124,13 @@ D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\run
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\Turnos.Data.dll
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\bin\Debug\net8.0-windows\Turnos.Data.pdb
-D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\MainWindow.g.cs
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.csproj.AssemblyReference.cache
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\App.baml
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\MainWindow.g.cs
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\App.g.cs
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_Content.g.cs
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_MarkupCompile.cache
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App_MarkupCompile.lref
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\MainWindow.baml
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.g.resources
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.GeneratedMSBuildEditorConfig.editorconfig
@@ -142,5 +139,8 @@ D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Tur
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.csproj.CoreCompileInputs.cache
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.sourcelink.json
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.csproj.Up2Date
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\refint\Turnos.App.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.pdb
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.genruntimeconfig.cache
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\ref\Turnos.App.dll

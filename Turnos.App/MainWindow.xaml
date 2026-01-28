@@ -35,7 +35,7 @@
                          Width="140" 
                          Margin="0,0,25,0" 
                          VerticalAlignment="Center"
-                         Style="{StaticResource MaterialDesignFilledComboBox}"/>
+                         Style="{DynamicResource MaterialDesignFilledComboBox}"/>
                 
                 <TextBlock Text="Fecha Inicio:" 
                           VerticalAlignment="Center" 
@@ -46,7 +46,7 @@
                            Width="160" 
                            Margin="0,0,25,0" 
                            VerticalAlignment="Center"
-                           Style="{StaticResource MaterialDesignFilledDatePicker}"/>
+                           Style="{DynamicResource MaterialDesignFilledDatePicker}"/>
                 
                 <TextBlock Text="Fecha Fin:" 
                           VerticalAlignment="Center" 
@@ -57,7 +57,7 @@
                            Width="160" 
                            Margin="0,0,25,0" 
                            VerticalAlignment="Center"
-                           Style="{StaticResource MaterialDesignFilledDatePicker}"/>
+                           Style="{DynamicResource MaterialDesignFilledDatePicker}"/>
                 
                 <Button Content="Cargar" 
                        x:Name="btnCargar" 
@@ -66,7 +66,7 @@
                        Height="36" 
                        Margin="0,0,25,0" 
                        VerticalAlignment="Center"
-                       Style="{StaticResource MaterialDesignRaisedButton}"/>
+                       Style="{DynamicResource MaterialDesignRaisedButton}"/>
                 
                 <TextBlock x:Name="txtEstado" 
                           Text="Listo" 
@@ -79,7 +79,7 @@
 
         <!-- TabControl -->
         <TabControl Grid.Row="1"
-                   Style="{StaticResource MaterialDesignFilledTabControl}">
+                   Style="{DynamicResource MaterialDesignFilledTabControl}">
             <!-- Entradas Parking -->
             <TabItem Header="Entradas Parking">
                 <Grid>
@@ -93,7 +93,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -109,7 +109,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
@@ -127,7 +127,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -143,7 +143,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
@@ -161,7 +161,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -177,7 +177,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
@@ -195,7 +195,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -211,7 +211,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
@@ -229,7 +229,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -245,7 +245,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
@@ -263,7 +263,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -280,7 +280,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
@@ -298,7 +298,7 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              Style="{StaticResource MaterialDesignDataGrid}"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
                               materialDesign:DataGridAssist.CellPadding="13,8,8,8"
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                         <DataGrid.Columns>
@@ -314,7 +314,7 @@
                                   Text="Total: 0" 
                                   HorizontalAlignment="Right"
                                   FontWeight="SemiBold"
-                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                  Style="{DynamicResource MaterialDesignBody1TextBlock}"/>
                     </materialDesign:Card>
                 </Grid>
             </TabItem>
