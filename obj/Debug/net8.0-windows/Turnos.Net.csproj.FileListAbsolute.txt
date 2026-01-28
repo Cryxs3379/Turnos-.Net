@@ -47,3 +47,4 @@ D:\Hellehollis\Nikole Turnos\Turnos .Net\obj\Debug\net8.0-windows\refint\Turnos.
 D:\Hellehollis\Nikole Turnos\Turnos .Net\obj\Debug\net8.0-windows\Turnos.Net.pdb
 D:\Hellehollis\Nikole Turnos\Turnos .Net\obj\Debug\net8.0-windows\Turnos.Net.genruntimeconfig.cache
 D:\Hellehollis\Nikole Turnos\Turnos .Net\obj\Debug\net8.0-windows\ref\Turnos.Net.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\obj\Debug\net8.0-windows\Turnos.Net.sourcelink.json

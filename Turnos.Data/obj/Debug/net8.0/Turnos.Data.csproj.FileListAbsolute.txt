@@ -1,0 +1,25 @@
+D:\Hellehollis\Nikole Turnos\Turnos.Data\bin\Debug\net8.0\Turnos.Data.deps.json
+D:\Hellehollis\Nikole Turnos\Turnos.Data\bin\Debug\net8.0\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos.Data\bin\Debug\net8.0\Turnos.Data.pdb
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.csproj.AssemblyReference.cache
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.GeneratedMSBuildEditorConfig.editorconfig
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.AssemblyInfoInputs.cache
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.AssemblyInfo.cs
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.csproj.CoreCompileInputs.cache
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\refint\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\Turnos.Data.pdb
+D:\Hellehollis\Nikole Turnos\Turnos.Data\obj\Debug\net8.0\ref\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\bin\Debug\net8.0\Turnos.Data.deps.json
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\bin\Debug\net8.0\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\bin\Debug\net8.0\Turnos.Data.pdb
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.csproj.AssemblyReference.cache
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.GeneratedMSBuildEditorConfig.editorconfig
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.AssemblyInfoInputs.cache
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.AssemblyInfo.cs
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.csproj.CoreCompileInputs.cache
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.sourcelink.json
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\refint\Turnos.Data.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\Turnos.Data.pdb
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.Data\obj\Debug\net8.0\ref\Turnos.Data.dll

@@ -1,0 +1,323 @@
+﻿<Window x:Class="Turnos.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Turnos.App"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Turnos" Height="700" Width="1200"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Padding="15" 
+                Margin="0,0,0,5"
+                Background="{DynamicResource PrimaryHueMidBrush}">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="Lugar:" 
+                          VerticalAlignment="Center" 
+                          Margin="0,0,10,0"
+                          Foreground="White"
+                          FontWeight="Medium"/>
+                <ComboBox x:Name="cmbLugar" 
+                         Width="140" 
+                         Margin="0,0,25,0" 
+                         VerticalAlignment="Center"
+                         Style="{StaticResource MaterialDesignFilledComboBox}"/>
+                
+                <TextBlock Text="Fecha Inicio:" 
+                          VerticalAlignment="Center" 
+                          Margin="0,0,10,0"
+                          Foreground="White"
+                          FontWeight="Medium"/>
+                <DatePicker x:Name="dpFechaInicio" 
+                           Width="160" 
+                           Margin="0,0,25,0" 
+                           VerticalAlignment="Center"
+                           Style="{StaticResource MaterialDesignFilledDatePicker}"/>
+                
+                <TextBlock Text="Fecha Fin:" 
+                          VerticalAlignment="Center" 
+                          Margin="0,0,10,0"
+                          Foreground="White"
+                          FontWeight="Medium"/>
+                <DatePicker x:Name="dpFechaFin" 
+                           Width="160" 
+                           Margin="0,0,25,0" 
+                           VerticalAlignment="Center"
+                           Style="{StaticResource MaterialDesignFilledDatePicker}"/>
+                
+                <Button Content="Cargar" 
+                       x:Name="btnCargar" 
+                       Click="BtnCargar_Click" 
+                       Width="120" 
+                       Height="36" 
+                       Margin="0,0,25,0" 
+                       VerticalAlignment="Center"
+                       Style="{StaticResource MaterialDesignRaisedButton}"/>
+                
+                <TextBlock x:Name="txtEstado" 
+                          Text="Listo" 
+                          VerticalAlignment="Center" 
+                          FontWeight="SemiBold" 
+                          Margin="10,0,0,0"
+                          Foreground="White"/>
+            </StackPanel>
+        </Border>
+
+        <!-- TabControl -->
+        <TabControl Grid.Row="1"
+                   Style="{StaticResource MaterialDesignFilledTabControl}">
+            <!-- Entradas Parking -->
+            <TabItem Header="Entradas Parking">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvEntradasParking" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding EntradasParking}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No. Contrato" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorEntradasParking" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+
+            <!-- Entradas Rent a Car -->
+            <TabItem Header="Entradas Rent a Car">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvEntradasRentACar" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding EntradasRentACar}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nº Sucursal" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorEntradasRentACar" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+
+            <!-- Entradas Reserva Parking -->
+            <TabItem Header="Entradas Reserva Parking">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvEntradasReservaParking" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding EntradasReservaParking}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No. Reserva" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorEntradasReservaParking" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+
+            <!-- Entrada Reserva Rent a Car -->
+            <TabItem Header="Entrada Reserva Rent a Car">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvEntradaReservaRentACar" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding EntradaReservaRentACar}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nº Reserva" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorEntradaReservaRentACar" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+
+            <!-- Salidas Parking -->
+            <TabItem Header="Salidas Parking">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvSalidasParking" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding SalidasParking}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No. Contrato" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorSalidasParking" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+
+            <!-- Salidas Rent a Car (4 columnas) -->
+            <TabItem Header="Salidas Rent a Car">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvSalidasRentACar" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding SalidasRentACar}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nº Reserva" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                            <DataGridTextColumn Header="FL" Binding="{Binding Col4}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorSalidasRentACar" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+
+            <!-- Salida Reserva Parking -->
+            <TabItem Header="Salida Reserva Parking">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="dgvSalidaReservaParking" 
+                              Grid.Row="0"
+                              ItemsSource="{Binding SalidaReservaParking}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              Style="{StaticResource MaterialDesignDataGrid}"
+                              materialDesign:DataGridAssist.CellPadding="13,8,8,8"
+                              materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No. Reserva" Binding="{Binding Col1}" Width="*"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Col2}" Width="*"/>
+                            <DataGridTextColumn Header="Hora" Binding="{Binding Col3}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <materialDesign:Card Grid.Row="1" 
+                                        Padding="10,8,20,8" 
+                                        HorizontalAlignment="Right">
+                        <TextBlock x:Name="txtContadorSalidaReservaParking" 
+                                  Text="Total: 0" 
+                                  HorizontalAlignment="Right"
+                                  FontWeight="SemiBold"
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </materialDesign:Card>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
