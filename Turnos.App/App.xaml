@@ -4,11 +4,14 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Material Design Theme (Light) -->
+                <!-- Material Design Theme (Light) - DEBE ir primero -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 
-                <!-- Primary Color (Blue) - usando ruta directa sin Recommended -->
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Primary/MaterialDesignColor.Blue.xaml" />
+                <!-- Primary Color (Blue) - ruta Recommended para MaterialDesign v5 -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
+                
+                <!-- Secondary Color (Lime) - ruta Recommended para MaterialDesign v5 -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
