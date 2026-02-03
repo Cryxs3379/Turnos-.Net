@@ -33,6 +33,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // Colecciones para empleados
     public ObservableCollection<EmployeeItem> AllEmployees { get; } = new();
     public ObservableCollection<EmployeeItem> FilteredEmployees { get; } = new();
+    public ObservableCollection<string> SelectedEmployeeBreaks { get; } = new();
 
     private string _selectedZona = "Todas";
     public string SelectedZona
@@ -91,6 +92,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         dpFechaFin.SelectedDate = new DateTime(2026, 2, 8);
         txtEstado.Text = "Listo";
         
+        // Inicializar estilos de botones después de que la ventana esté cargada
+        Loaded += MainWindow_Loaded;
+        
         // Cancelar carga al cerrar ventana
         Closing += MainWindow_Closing;
         
@@ -98,47 +102,86 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ = CargarTodosLosDatosAsync(_cancellationTokenSource.Token);
     }
 
-    private void BtnTrabajadores_Click(object sender, RoutedEventArgs e)
+    private void BtnTurnos_Click(object sender, RoutedEventArgs e)
     {
-        ToggleWorkerMode();
+        ActivarModoTurnos();
     }
 
-    private void ToggleWorkerMode()
+    private void BtnTrabajadores_Click(object sender, RoutedEventArgs e)
     {
-        _isWorkerMode = !_isWorkerMode;
+        ActivarModoTrabajadores();
+    }
 
-        if (_isWorkerMode)
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Inicializar estilos de botones (modo turnos activo por defecto)
+        ActualizarEstilosBotones();
+    }
+
+    private void ActualizarEstilosBotones()
+    {
+        var raisedStyle = TryFindResource("MaterialDesignRaisedButton") as System.Windows.Style;
+        var outlinedStyle = TryFindResource("MaterialDesignOutlinedButton") as System.Windows.Style;
+        
+        if (raisedStyle != null && outlinedStyle != null)
         {
-            // Modo trabajadores: mostrar panel izquierdo ocupando todo el ancho
-            drawerColumn.Width = new GridLength(1, GridUnitType.Star);
-            RightContent.Visibility = Visibility.Collapsed;
-            btnCargar.IsEnabled = false;
-            progressBar.Visibility = Visibility.Collapsed;
-            txtEstado.Text = "Modo trabajadores";
-            
-            // Cargar empleados cuando se entra al modo trabajadores por primera vez
-            if (AllEmployees.Count == 0)
+            if (_isWorkerMode)
             {
-                _ = CargarEmpleadosAsync();
+                btnTrabajadores.Style = raisedStyle;
+                btnTurnos.Style = outlinedStyle;
+            }
+            else
+            {
+                btnTurnos.Style = raisedStyle;
+                btnTrabajadores.Style = outlinedStyle;
             }
         }
-        else
+    }
+
+    private void ActivarModoTurnos()
+    {
+        _isWorkerMode = false;
+        
+        // Modo turnos: ocultar panel izquierdo y panel derecho de trabajadores, mostrar contenido de turnos
+        drawerColumn.Width = new GridLength(0);
+        RightWorkerContent.Visibility = Visibility.Collapsed;
+        RightContent.Visibility = Visibility.Visible;
+        btnCargar.IsEnabled = true;
+        txtEstado.Text = "Listo";
+        
+        // Actualizar estilos de botones
+        ActualizarEstilosBotones();
+    }
+
+    private void ActivarModoTrabajadores()
+    {
+        _isWorkerMode = true;
+        
+        // Modo trabajadores: mostrar panel izquierdo con ancho fijo y panel derecho de trabajadores
+        drawerColumn.Width = new GridLength(380);
+        RightContent.Visibility = Visibility.Collapsed;
+        RightWorkerContent.Visibility = Visibility.Visible;
+        btnCargar.IsEnabled = false;
+        progressBar.Visibility = Visibility.Collapsed;
+        txtEstado.Text = "Modo trabajadores";
+        
+        // Cargar empleados cuando se entra al modo trabajadores por primera vez
+        if (AllEmployees.Count == 0)
         {
-            // Modo normal: ocultar panel izquierdo y mostrar contenido derecho
-            drawerColumn.Width = new GridLength(0);
-            RightContent.Visibility = Visibility.Visible;
-            btnCargar.IsEnabled = true;
-            txtEstado.Text = "Listo";
+            _ = CargarEmpleadosAsync();
         }
+        
+        // Actualizar estilos de botones
+        ActualizarEstilosBotones();
     }
 
     private async Task CargarEmpleadosAsync()
     {
         try
         {
-            if (txtDetalleEmpleado != null)
+            if (txtWorkerSubtitle != null)
             {
-                txtDetalleEmpleado.Text = "Cargando empleados...";
+                txtWorkerSubtitle.Text = "Cargando empleados...";
             }
             
             var empleados = await _excelReader.GetAsignacionesAsync();
@@ -151,18 +194,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             AplicarFiltros();
             
-            if (txtDetalleEmpleado != null)
+            if (txtWorkerSubtitle != null)
             {
-                txtDetalleEmpleado.Text = AllEmployees.Count == 0 
+                txtWorkerSubtitle.Text = AllEmployees.Count == 0 
                     ? "No se encontraron empleados" 
-                    : "Seleccione un empleado";
+                    : "Seleccione un trabajador";
+            }
+            
+            if (txtWorkerEmptyMessage != null && AllEmployees.Count > 0)
+            {
+                txtWorkerEmptyMessage.Visibility = Visibility.Visible;
             }
         }
         catch (Exception ex)
         {
-            if (txtDetalleEmpleado != null)
+            if (txtWorkerSubtitle != null)
             {
-                txtDetalleEmpleado.Text = $"Error al cargar: {ex.Message}";
+                txtWorkerSubtitle.Text = $"Error al cargar: {ex.Message}";
             }
             MessageBox.Show($"Error al cargar empleados: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -222,13 +270,22 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void ActualizarDetalleEmpleado()
     {
-        if (txtDetalleEmpleado == null) return;
+        SelectedEmployeeBreaks.Clear();
         
         if (SelectedEmployee != null)
         {
             try
             {
-                txtDetalleEmpleado.Text = "Cargando semanas de descanso...";
+                // Actualizar subtítulo
+                if (txtWorkerSubtitle != null)
+                {
+                    txtWorkerSubtitle.Text = $"{SelectedEmployee.Name} - {SelectedEmployee.Zona}";
+                }
+                
+                if (txtWorkerEmptyMessage != null)
+                {
+                    txtWorkerEmptyMessage.Visibility = Visibility.Collapsed;
+                }
                 
                 // Cargar módulos y asignaciones si no están cacheados
                 var modulos = await _excelReader.GetModulosAsync();
@@ -239,9 +296,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 {
                     // Crear diccionario de módulos para búsqueda rápida
                     var modulosDict = modulos.ToDictionary(m => m.Modulo, StringComparer.OrdinalIgnoreCase);
-                    
-                    // Construir lista de semanas de descanso
-                    var semanasDescanso = new List<string>();
                     
                     // Ordenar módulos numéricamente (parsear como int si es posible)
                     var modulosOrdenados = modulosEmpleado.OrderBy(m =>
@@ -257,37 +311,42 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                         {
                             var fechaInicioStr = modulo.FechaInicio.ToString("dd/MM/yyyy");
                             var fechaFinStr = modulo.FechaFin.ToString("dd/MM/yyyy");
-                            semanasDescanso.Add($"M{moduloNum} ({fechaInicioStr} - {fechaFinStr})");
+                            SelectedEmployeeBreaks.Add($"M{moduloNum} ({fechaInicioStr} - {fechaFinStr})");
                         }
                         else
                         {
-                            semanasDescanso.Add($"M{moduloNum} (sin fechas)");
+                            SelectedEmployeeBreaks.Add($"M{moduloNum} (sin fechas)");
                         }
                     }
                     
-                    if (semanasDescanso.Count > 0)
+                    if (SelectedEmployeeBreaks.Count == 0)
                     {
-                        txtDetalleEmpleado.Text = $"Descansos de {SelectedEmployee.Name}:\n{string.Join("\n", semanasDescanso)}";
-                    }
-                    else
-                    {
-                        txtDetalleEmpleado.Text = $"No se encontraron semanas de descanso para {SelectedEmployee.Name}";
+                        SelectedEmployeeBreaks.Add($"No se encontraron semanas de descanso para {SelectedEmployee.Name}");
                     }
                 }
                 else
                 {
-                    txtDetalleEmpleado.Text = $"No se encontraron módulos asignados para {SelectedEmployee.Name}";
+                    SelectedEmployeeBreaks.Add($"No se encontraron módulos asignados para {SelectedEmployee.Name}");
                 }
             }
             catch (Exception ex)
             {
-                txtDetalleEmpleado.Text = $"Error al cargar semanas de descanso: {ex.Message}";
+                SelectedEmployeeBreaks.Add($"Error al cargar semanas de descanso: {ex.Message}");
                 MessageBox.Show($"Error al cargar semanas de descanso:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         else
         {
-            txtDetalleEmpleado.Text = "Seleccione un empleado";
+            // No hay empleado seleccionado
+            if (txtWorkerSubtitle != null)
+            {
+                txtWorkerSubtitle.Text = "Seleccione un trabajador";
+            }
+            
+            if (txtWorkerEmptyMessage != null)
+            {
+                txtWorkerEmptyMessage.Visibility = Visibility.Visible;
+            }
         }
     }
 

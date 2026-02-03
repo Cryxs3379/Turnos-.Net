@@ -38,6 +38,11 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="btnTurnos" Content="Turnos" Width="120" Height="40"
+                                Margin="0,0,12,0"
+                                Click="BtnTurnos_Click"
+                                Style="{DynamicResource MaterialDesignRaisedButton}"/>
+                        
                         <Button x:Name="btnTrabajadores" Content="Trabajadores" Width="120" Height="40"
                                 Margin="0,0,12,0"
                                 Click="BtnTrabajadores_Click"
@@ -110,38 +115,21 @@
 
                             <!-- ListBox Empleados -->
                             <ListBox x:Name="lstEmpleados"
-                                     Height="300"
-                                     Margin="0,0,0,12"
+                                     Margin="0,0,0,0"
                                      SelectionChanged="LstEmpleados_SelectionChanged"
                                      ItemsSource="{Binding FilteredEmployees}"
                                      DisplayMemberPath="Name"
                                      Style="{DynamicResource MaterialDesignListBox}"/>
-
-                            <!-- Zona Detalle -->
-                            <Border BorderBrush="{DynamicResource MaterialDesignDivider}"
-                                    BorderThickness="0,1,0,0"
-                                    Padding="0,12,0,0"
-                                    Margin="0,0,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="Detalle"
-                                               FontSize="14"
-                                               FontWeight="SemiBold"
-                                               Margin="0,0,0,8"/>
-                                    <TextBlock x:Name="txtDetalleEmpleado"
-                                               Text="Seleccione un empleado"
-                                               TextWrapping="Wrap"
-                                               Opacity="0.7"/>
-                                </StackPanel>
-                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
             </materialDesign:Card>
 
-            <!-- CONTENIDO DERECHO -->
+            <!-- CONTENIDO DERECHO - MODO TURNOS -->
             <materialDesign:Card x:Name="RightContent"
                                  Grid.Column="1"
-                                 Padding="0">
+                                 Padding="0"
+                                 Visibility="Visible">
                 <Border CornerRadius="12"
                         Background="{DynamicResource MaterialDesignPaper}">
 
@@ -368,6 +356,48 @@
 
                         </TabControl>
                     </Grid>
+                </Border>
+            </materialDesign:Card>
+
+            <!-- CONTENIDO DERECHO - MODO TRABAJADORES -->
+            <materialDesign:Card x:Name="RightWorkerContent"
+                                 Grid.Column="1"
+                                 Padding="0"
+                                 Visibility="Collapsed">
+                <Border CornerRadius="12"
+                        Background="{DynamicResource MaterialDesignPaper}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="24">
+                            <TextBlock Text="Detalle trabajador"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,8"/>
+                            
+                            <TextBlock x:Name="txtWorkerSubtitle"
+                                       Text="Seleccione un trabajador"
+                                       FontSize="14"
+                                       Opacity="0.7"
+                                       Margin="0,0,0,24"/>
+                            
+                            <ItemsControl ItemsSource="{Binding SelectedEmployeeBreaks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   FontSize="14"
+                                                   Margin="0,0,0,8"
+                                                   TextWrapping="Wrap"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <TextBlock x:Name="txtWorkerEmptyMessage"
+                                       Text="Seleccione un trabajador para ver sus módulos de descanso"
+                                       FontSize="14"
+                                       Opacity="0.5"
+                                       TextWrapping="Wrap"
+                                       Visibility="Collapsed"/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </materialDesign:Card>
         </Grid>
