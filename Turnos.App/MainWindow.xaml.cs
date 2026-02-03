@@ -17,7 +17,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly TurnosRepository _turnosRepository;
     private readonly VacationExcelReader _excelReader;
     private CancellationTokenSource? _cancellationTokenSource;
-    private bool _isDrawerOpen = false;
+    private bool _isWorkerMode = false;
 
     // Colecciones para grids de 3 columnas
     public ObservableCollection<GridRow3> EntradasParking { get; } = new();
@@ -100,17 +100,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void BtnTrabajadores_Click(object sender, RoutedEventArgs e)
     {
-        ToggleDrawer();
+        ToggleWorkerMode();
     }
 
-    private void ToggleDrawer()
+    private void ToggleWorkerMode()
     {
-        _isDrawerOpen = !_isDrawerOpen;
+        _isWorkerMode = !_isWorkerMode;
 
-        if (_isDrawerOpen)
+        if (_isWorkerMode)
         {
-            drawerColumn.Width = new GridLength(350);
-            // Cargar empleados cuando se abre el drawer por primera vez
+            // Modo trabajadores: mostrar panel izquierdo ocupando todo el ancho
+            drawerColumn.Width = new GridLength(1, GridUnitType.Star);
+            contenidoDerecho.Visibility = Visibility.Collapsed;
+            txtEstado.Text = "Modo trabajadores";
+            
+            // Cargar empleados cuando se entra al modo trabajadores por primera vez
             if (AllEmployees.Count == 0)
             {
                 _ = CargarEmpleadosAsync();
@@ -118,7 +122,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         else
         {
+            // Modo normal: ocultar panel izquierdo y mostrar contenido derecho
             drawerColumn.Width = new GridLength(0);
+            contenidoDerecho.Visibility = Visibility.Visible;
+            txtEstado.Text = "Listo";
         }
     }
 
@@ -215,13 +222,57 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         SelectedEmployee = lstEmpleados.SelectedItem as EmployeeItem;
     }
 
-    private void ActualizarDetalleEmpleado()
+    private async void ActualizarDetalleEmpleado()
     {
         if (txtDetalleEmpleado == null) return;
         
         if (SelectedEmployee != null)
         {
-            txtDetalleEmpleado.Text = $"Turnos de {SelectedEmployee.Name} (próximamente)";
+            try
+            {
+                txtDetalleEmpleado.Text = "Cargando semanas de descanso...";
+                
+                // Cargar módulos y asignaciones si no están cacheados
+                var modulos = await _excelReader.GetModulosAsync();
+                var asignacionesModulos = await _excelReader.GetAsignacionesModulosAsync();
+                
+                // Obtener módulos del empleado seleccionado
+                if (asignacionesModulos.TryGetValue(SelectedEmployee.Name, out var modulosEmpleado) && modulosEmpleado.Count > 0)
+                {
+                    // Crear diccionario de módulos para búsqueda rápida
+                    var modulosDict = modulos.ToDictionary(m => m.Modulo, StringComparer.OrdinalIgnoreCase);
+                    
+                    // Construir lista de semanas de descanso
+                    var semanasDescanso = new List<string>();
+                    
+                    foreach (var moduloNum in modulosEmpleado.OrderBy(m => m))
+                    {
+                        if (modulosDict.TryGetValue(moduloNum, out var modulo))
+                        {
+                            var fechaInicioStr = modulo.FechaInicio.ToString("dd/MM/yyyy");
+                            var fechaFinStr = modulo.FechaFin.ToString("dd/MM/yyyy");
+                            semanasDescanso.Add($"M{moduloNum} ({fechaInicioStr}-{fechaFinStr})");
+                        }
+                    }
+                    
+                    if (semanasDescanso.Count > 0)
+                    {
+                        txtDetalleEmpleado.Text = $"Semanas de descanso:\n{string.Join("\n", semanasDescanso)}";
+                    }
+                    else
+                    {
+                        txtDetalleEmpleado.Text = $"No se encontraron semanas de descanso para {SelectedEmployee.Name}";
+                    }
+                }
+                else
+                {
+                    txtDetalleEmpleado.Text = $"No se encontraron módulos asignados para {SelectedEmployee.Name}";
+                }
+            }
+            catch (Exception ex)
+            {
+                txtDetalleEmpleado.Text = $"Error al cargar semanas de descanso: {ex.Message}";
+            }
         }
         else
         {

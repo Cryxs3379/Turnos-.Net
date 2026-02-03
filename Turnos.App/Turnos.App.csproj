@@ -31,4 +31,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="Services\VacationExcelReader.cs" />
+  </ItemGroup>
+
 </Project>

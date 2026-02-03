@@ -12,29 +12,6 @@
         Background="{DynamicResource MaterialDesignBackground}"
         TextElement.FontSize="14">
 
-    <Window.Resources>
-        <Storyboard x:Key="OpenDrawerStoryboard">
-            <DoubleAnimation Storyboard.TargetName="drawerColumn"
-                             Storyboard.TargetProperty="Width"
-                             To="350"
-                             Duration="0:0:0.3">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-        </Storyboard>
-        <Storyboard x:Key="CloseDrawerStoryboard">
-            <DoubleAnimation Storyboard.TargetName="drawerColumn"
-                             Storyboard.TargetProperty="Width"
-                             To="0"
-                             Duration="0:0:0.3">
-                <DoubleAnimation.EasingFunction>
-                    <CubicEase EasingMode="EaseOut"/>
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-        </Storyboard>
-    </Window.Resources>
-
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -104,7 +81,8 @@
                                  ClipToBounds="True">
                 <Border CornerRadius="12"
                         Background="{DynamicResource MaterialDesignPaper}"
-                        Width="350">
+                        HorizontalAlignment="Stretch"
+                        MinWidth="0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="16">
                             <TextBlock Text="Turnos de trabajadores"
@@ -160,7 +138,8 @@
             </materialDesign:Card>
 
             <!-- CONTENIDO DERECHO -->
-            <materialDesign:Card Grid.Column="1"
+            <materialDesign:Card x:Name="contenidoDerecho"
+                                 Grid.Column="1"
                                  Padding="0">
                 <Border CornerRadius="12"
                         Background="{DynamicResource MaterialDesignPaper}">
