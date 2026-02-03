@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Extensions.Configuration;
 using Turnos.App.Models;
 using Turnos.App.Services;
@@ -117,6 +118,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ = CargarTodosLosDatosAsync(_cancellationTokenSource.Token);
     }
 
+    private void BtnTotales_Click(object sender, RoutedEventArgs e)
+    {
+        ActivarModoTotales();
+    }
+
     private void BtnTurnos_Click(object sender, RoutedEventArgs e)
     {
         ActivarModoTurnos();
@@ -157,12 +163,29 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         _isWorkerMode = false;
         
-        // Modo turnos: ocultar panel izquierdo y panel derecho de trabajadores, mostrar contenido de turnos
+        // Modo turnos: ocultar panel izquierdo y paneles de trabajadores/totales, mostrar contenido de turnos
         drawerColumn.Width = new GridLength(0);
         RightWorkerContent.Visibility = Visibility.Collapsed;
+        RightTotalesContent.Visibility = Visibility.Collapsed;
         RightContent.Visibility = Visibility.Visible;
         btnCargar.IsEnabled = true;
         txtEstado.Text = "Listo";
+        
+        // Actualizar estilos de botones
+        ActualizarEstilosBotones();
+    }
+
+    private void ActivarModoTotales()
+    {
+        _isWorkerMode = false;
+        
+        // Modo totales: ocultar panel izquierdo y contenido de turnos, mostrar panel de totales
+        drawerColumn.Width = new GridLength(0);
+        RightWorkerContent.Visibility = Visibility.Collapsed;
+        RightContent.Visibility = Visibility.Collapsed;
+        RightTotalesContent.Visibility = Visibility.Visible;
+        btnCargar.IsEnabled = true;
+        txtEstado.Text = "Modo totales";
         
         // Actualizar estilos de botones
         ActualizarEstilosBotones();
@@ -938,6 +961,60 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             tabla.Add(fila);
         }
 
+        // Añadir fila "Total" que suma todas las horas por día
+        var filaTotal = new SemanaHoraRow
+        {
+            Rango = "Total"
+        };
+
+        // Calcular totales por día (suma de todas las horas)
+        for (int d = 0; d < 7; d++)
+        {
+            int totalEnt = 0;
+            int totalSal = 0;
+            
+            for (int h = 0; h < 24; h++)
+            {
+                totalEnt += contadoresEntradas[d, h];
+                totalSal += contadoresSalidas[d, h];
+            }
+
+            // Asignar según el día
+            switch (d)
+            {
+                case 0:
+                    filaTotal.D0_Ent = totalEnt;
+                    filaTotal.D0_Sal = totalSal;
+                    break;
+                case 1:
+                    filaTotal.D1_Ent = totalEnt;
+                    filaTotal.D1_Sal = totalSal;
+                    break;
+                case 2:
+                    filaTotal.D2_Ent = totalEnt;
+                    filaTotal.D2_Sal = totalSal;
+                    break;
+                case 3:
+                    filaTotal.D3_Ent = totalEnt;
+                    filaTotal.D3_Sal = totalSal;
+                    break;
+                case 4:
+                    filaTotal.D4_Ent = totalEnt;
+                    filaTotal.D4_Sal = totalSal;
+                    break;
+                case 5:
+                    filaTotal.D5_Ent = totalEnt;
+                    filaTotal.D5_Sal = totalSal;
+                    break;
+                case 6:
+                    filaTotal.D6_Ent = totalEnt;
+                    filaTotal.D6_Sal = totalSal;
+                    break;
+            }
+        }
+
+        tabla.Add(filaTotal);
+
         // Construir resumen por día
         for (int d = 0; d < diasRango; d++)
         {
@@ -1101,21 +1178,44 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Binding = new System.Windows.Data.Binding("Tar_Tot")
         });
 
-        // Totales
+        // Totales - con estilos destacados
+        var styleTotalCell = new Style(typeof(TextBlock));
+        styleTotalCell.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.SemiBold));
+        styleTotalCell.Setters.Add(new Setter(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center));
+        styleTotalCell.Setters.Add(new Setter(TextBlock.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 200, 230, 201)))); // Verde claro
+        styleTotalCell.Setters.Add(new Setter(TextBlock.PaddingProperty, new Thickness(4, 2, 4, 2)));
+
         dgvResumenDias.Columns.Add(new DataGridTextColumn
         {
             Header = "Total Ent",
-            Binding = new System.Windows.Data.Binding("TotalEnt")
+            Binding = new System.Windows.Data.Binding("TotalEnt"),
+            ElementStyle = styleTotalCell
         });
+        
+        var styleTotalSalCell = new Style(typeof(TextBlock));
+        styleTotalSalCell.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.SemiBold));
+        styleTotalSalCell.Setters.Add(new Setter(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center));
+        styleTotalSalCell.Setters.Add(new Setter(TextBlock.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 187, 222, 251)))); // Azul claro
+        styleTotalSalCell.Setters.Add(new Setter(TextBlock.PaddingProperty, new Thickness(4, 2, 4, 2)));
+
         dgvResumenDias.Columns.Add(new DataGridTextColumn
         {
             Header = "Total Sal",
-            Binding = new System.Windows.Data.Binding("TotalSal")
+            Binding = new System.Windows.Data.Binding("TotalSal"),
+            ElementStyle = styleTotalSalCell
         });
+        
+        var styleTotalGenCell = new Style(typeof(TextBlock));
+        styleTotalGenCell.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.SemiBold));
+        styleTotalGenCell.Setters.Add(new Setter(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center));
+        styleTotalGenCell.Setters.Add(new Setter(TextBlock.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 255, 245, 157)))); // Amarillo claro
+        styleTotalGenCell.Setters.Add(new Setter(TextBlock.PaddingProperty, new Thickness(4, 2, 4, 2)));
+
         dgvResumenDias.Columns.Add(new DataGridTextColumn
         {
             Header = "Total Gen",
-            Binding = new System.Windows.Data.Binding("TotalGen")
+            Binding = new System.Windows.Data.Binding("TotalGen"),
+            ElementStyle = styleTotalGenCell
         });
     }
 

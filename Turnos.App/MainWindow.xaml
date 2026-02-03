@@ -37,38 +37,44 @@
                         <TextBlock Text="Entradas y Salidas" FontSize="12" Opacity="0.7"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button x:Name="btnTurnos" Content="Turnos" Width="120" Height="40"
+                    <WrapPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="btnTotales" Content="Totales" MinWidth="120" Height="40"
+                                Margin="0,0,12,0"
+                                Click="BtnTotales_Click"
+                                Style="{DynamicResource MaterialDesignOutlinedButton}"/>
+                        
+                        <Button x:Name="btnTurnos" Content="Turnos" MinWidth="120" Height="40"
                                 Margin="0,0,12,0"
                                 Click="BtnTurnos_Click"
                                 Style="{DynamicResource MaterialDesignRaisedButton}"/>
                         
-                        <Button x:Name="btnTrabajadores" Content="Trabajadores" Width="120" Height="40"
+                        <Button x:Name="btnTrabajadores" Content="Trabajadores" MinWidth="120" Height="40"
                                 Margin="0,0,12,0"
                                 Click="BtnTrabajadores_Click"
-                                Style="{DynamicResource MaterialDesignRaisedButton}"/>
+                                Style="{DynamicResource MaterialDesignOutlinedButton}"/>
 
-                        <ComboBox x:Name="cmbLugar" Width="140" Margin="0,0,12,0"
+                        <ComboBox x:Name="cmbLugar" MinWidth="140" Margin="0,0,12,0"
                                   Style="{DynamicResource MaterialDesignFilledComboBox}"
                                   materialDesign:HintAssist.Hint="Lugar"/>
 
-                        <DatePicker x:Name="dpFechaInicio" Width="170" Margin="0,0,12,0"
+                        <DatePicker x:Name="dpFechaInicio" MinWidth="170" Margin="0,0,12,0"
                                     Style="{DynamicResource MaterialDesignFilledDatePicker}"
                                     materialDesign:HintAssist.Hint="Fecha inicio"/>
 
-                        <DatePicker x:Name="dpFechaFin" Width="170" Margin="0,0,12,0"
+                        <DatePicker x:Name="dpFechaFin" MinWidth="170" Margin="0,0,12,0"
                                     Style="{DynamicResource MaterialDesignFilledDatePicker}"
                                     materialDesign:HintAssist.Hint="Fecha fin"/>
 
-                        <Button x:Name="btnCargar" Content="Cargar" Width="120" Height="40"
+                        <Button x:Name="btnCargar" Content="Cargar" MinWidth="120" Height="40"
                                 Margin="0,0,12,0"
                                 Click="BtnCargar_Click"
                                 Style="{DynamicResource MaterialDesignRaisedButton}"/>
 
                         <TextBlock x:Name="txtEstado" Text="Listo"
                                    VerticalAlignment="Center"
+                                   Margin="12,0,0,0"
                                    FontWeight="SemiBold"/>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
         </materialDesign:Card>
@@ -146,7 +152,7 @@
                                      Visibility="Collapsed"
                                      Style="{DynamicResource MaterialDesignLinearProgressBar}"/>
 
-                        <TabControl Grid.Row="1"
+                        <TabControl x:Name="tabsTurnos" Grid.Row="1"
                                     Style="{DynamicResource MaterialDesignFilledTabControl}"
                                     Padding="8">
 
@@ -354,38 +360,6 @@
                             </Grid>
                         </TabItem>
 
-                        <!-- 8. Totales por día y hora -->
-                        <TabItem Header="Totales por día y hora">
-                            <Grid Margin="8">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                
-                                <!-- DataGrid principal (24 filas × columnas dinámicas) -->
-                                <DataGrid x:Name="dgvTotalesSemana"
-                                          Grid.Row="0"
-                                          ItemsSource="{Binding TotalesSemana}"
-                                          AutoGenerateColumns="False"
-                                          IsReadOnly="True"
-                                          CanUserAddRows="False"
-                                          Style="{DynamicResource MaterialDesignDataGrid}"/>
-                                
-                                <!-- Separador -->
-                                <Border Grid.Row="1" Height="1" Background="{DynamicResource MaterialDesignDivider}" Margin="0,8"/>
-                                
-                                <!-- Resumen por día -->
-                                <DataGrid x:Name="dgvResumenDias"
-                                          Grid.Row="2"
-                                          ItemsSource="{Binding ResumenDias}"
-                                          AutoGenerateColumns="False"
-                                          IsReadOnly="True"
-                                          CanUserAddRows="False"
-                                          Style="{DynamicResource MaterialDesignDataGrid}"/>
-                            </Grid>
-                        </TabItem>
-
                         </TabControl>
                     </Grid>
                 </Border>
@@ -430,6 +404,60 @@
                                        Visibility="Collapsed"/>
                         </StackPanel>
                     </ScrollViewer>
+                </Border>
+            </materialDesign:Card>
+
+            <!-- CONTENIDO DERECHO - MODO TOTALES -->
+            <materialDesign:Card x:Name="RightTotalesContent"
+                                 Grid.Column="1"
+                                 Padding="0"
+                                 Visibility="Collapsed">
+                <Border CornerRadius="12"
+                        Background="{DynamicResource MaterialDesignPaper}">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- DataGrid principal (24 filas × columnas dinámicas) -->
+                        <DataGrid x:Name="dgvTotalesSemana"
+                                  Grid.Row="0"
+                                  ItemsSource="{Binding TotalesSemana}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  Style="{DynamicResource MaterialDesignDataGrid}">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Rango}" Value="Total">
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                        
+                        <!-- GridSplitter para redimensionar -->
+                        <GridSplitter Grid.Row="1"
+                                      Height="5"
+                                      HorizontalAlignment="Stretch"
+                                      Background="{DynamicResource MaterialDesignDivider}"
+                                      ResizeDirection="Rows"
+                                      ShowsPreview="True"/>
+                        
+                        <!-- Resumen por día -->
+                        <DataGrid x:Name="dgvResumenDias"
+                                  Grid.Row="2"
+                                  ItemsSource="{Binding ResumenDias}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  Style="{DynamicResource MaterialDesignDataGrid}"/>
+                    </Grid>
                 </Border>
             </materialDesign:Card>
         </Grid>
