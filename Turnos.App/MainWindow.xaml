@@ -12,6 +12,29 @@
         Background="{DynamicResource MaterialDesignBackground}"
         TextElement.FontSize="14">
 
+    <Window.Resources>
+        <Storyboard x:Key="OpenDrawerStoryboard">
+            <DoubleAnimation Storyboard.TargetName="drawerColumn"
+                             Storyboard.TargetProperty="Width"
+                             To="350"
+                             Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Key="CloseDrawerStoryboard">
+            <DoubleAnimation Storyboard.TargetName="drawerColumn"
+                             Storyboard.TargetProperty="Width"
+                             To="0"
+                             Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -38,6 +61,11 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="btnTrabajadores" Content="Trabajadores" Width="120" Height="40"
+                                Margin="0,0,12,0"
+                                Click="BtnTrabajadores_Click"
+                                Style="{DynamicResource MaterialDesignRaisedButton}"/>
+
                         <ComboBox x:Name="cmbLugar" Width="140" Margin="0,0,12,0"
                                   Style="{DynamicResource MaterialDesignFilledComboBox}"
                                   materialDesign:HintAssist.Hint="Lugar"/>
@@ -64,27 +92,95 @@
         </materialDesign:Card>
 
         <!-- CONTENIDO -->
-        <materialDesign:Card Grid.Row="2"
-                             Padding="0">
-            <Border CornerRadius="12"
-                    Background="{DynamicResource MaterialDesignPaper}">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="drawerColumn" Width="0"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+            <!-- DRAWER IZQUIERDO -->
+            <materialDesign:Card Grid.Column="0"
+                                 Padding="0"
+                                 ClipToBounds="True">
+                <Border CornerRadius="12"
+                        Background="{DynamicResource MaterialDesignPaper}"
+                        Width="350">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="16">
+                            <TextBlock Text="Turnos de trabajadores"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,16"/>
 
-                    <ProgressBar x:Name="progressBar"
-                                 Grid.Row="0"
-                                 Height="4"
-                                 IsIndeterminate="True"
-                                 Visibility="Collapsed"
-                                 Style="{DynamicResource MaterialDesignLinearProgressBar}"/>
+                            <!-- ComboBox Zona -->
+                            <ComboBox x:Name="cmbZona"
+                                      Margin="0,0,0,12"
+                                      SelectionChanged="CmbZona_SelectionChanged"
+                                      Style="{DynamicResource MaterialDesignFilledComboBox}"
+                                      materialDesign:HintAssist.Hint="Zona">
+                                <ComboBoxItem Content="Todas" IsSelected="True"/>
+                                <ComboBoxItem Content="RECEPCION"/>
+                                <ComboBoxItem Content="ENTRADAS"/>
+                            </ComboBox>
 
-                    <TabControl Grid.Row="1"
-                                Style="{DynamicResource MaterialDesignFilledTabControl}"
-                                Padding="8">
+                            <!-- TextBox Búsqueda -->
+                            <TextBox x:Name="txtBusquedaEmpleado"
+                                     Margin="0,0,0,12"
+                                     TextChanged="TxtBusquedaEmpleado_TextChanged"
+                                     Style="{DynamicResource MaterialDesignFilledTextBox}"
+                                     materialDesign:HintAssist.Hint="Buscar empleado..."/>
+
+                            <!-- ListBox Empleados -->
+                            <ListBox x:Name="lstEmpleados"
+                                     Height="300"
+                                     Margin="0,0,0,12"
+                                     SelectionChanged="LstEmpleados_SelectionChanged"
+                                     DisplayMemberPath="Name"
+                                     Style="{DynamicResource MaterialDesignListBox}"/>
+
+                            <!-- Zona Detalle -->
+                            <Border BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                    BorderThickness="0,1,0,0"
+                                    Padding="0,12,0,0"
+                                    Margin="0,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Detalle"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock x:Name="txtDetalleEmpleado"
+                                               Text="Seleccione un empleado"
+                                               TextWrapping="Wrap"
+                                               Opacity="0.7"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </materialDesign:Card>
+
+            <!-- CONTENIDO DERECHO -->
+            <materialDesign:Card Grid.Column="1"
+                                 Padding="0">
+                <Border CornerRadius="12"
+                        Background="{DynamicResource MaterialDesignPaper}">
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <ProgressBar x:Name="progressBar"
+                                     Grid.Row="0"
+                                     Height="4"
+                                     IsIndeterminate="True"
+                                     Visibility="Collapsed"
+                                     Style="{DynamicResource MaterialDesignLinearProgressBar}"/>
+
+                        <TabControl Grid.Row="1"
+                                    Style="{DynamicResource MaterialDesignFilledTabControl}"
+                                    Padding="8">
 
                         <!-- 1. Entradas Parking -->
                         <TabItem Header="Entradas Parking">
@@ -290,10 +386,11 @@
                             </Grid>
                         </TabItem>
 
-                    </TabControl>
-                </Grid>
-            </Border>
-        </materialDesign:Card>
+                        </TabControl>
+                    </Grid>
+                </Border>
+            </materialDesign:Card>
+        </Grid>
 
     </Grid>
 </Window>

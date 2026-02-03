@@ -2,17 +2,23 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Animation;
+using Microsoft.Extensions.Configuration;
 using Turnos.App.Models;
+using Turnos.App.Services;
 using Turnos.Data;
 namespace Turnos.App;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private readonly TurnosRepository _turnosRepository;
+    private readonly VacationExcelReader _excelReader;
     private CancellationTokenSource? _cancellationTokenSource;
+    private bool _isDrawerOpen = false;
 
     // Colecciones para grids de 3 columnas
     public ObservableCollection<GridRow3> EntradasParking { get; } = new();
@@ -25,11 +31,59 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // Colección para grid de 4 columnas
     public ObservableCollection<GridRow4> SalidasRentACar { get; } = new();
 
+    // Colecciones para empleados
+    public ObservableCollection<EmployeeItem> AllEmployees { get; } = new();
+    public ObservableCollection<EmployeeItem> FilteredEmployees { get; } = new();
+
+    private string _selectedZona = "Todas";
+    public string SelectedZona
+    {
+        get => _selectedZona;
+        set
+        {
+            if (_selectedZona != value)
+            {
+                _selectedZona = value;
+                AplicarFiltros();
+            }
+        }
+    }
+
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (_searchText != value)
+            {
+                _searchText = value;
+                AplicarFiltros();
+            }
+        }
+    }
+
+    private EmployeeItem? _selectedEmployee;
+    public EmployeeItem? SelectedEmployee
+    {
+        get => _selectedEmployee;
+        set
+        {
+            if (_selectedEmployee != value)
+            {
+                _selectedEmployee = value;
+                ActualizarDetalleEmpleado();
+                OnPropertyChanged(nameof(SelectedEmployee));
+            }
+        }
+    }
+
     public MainWindow()
     {
         InitializeComponent();
         DataContext = this;
         _turnosRepository = App.TurnosRepository;
+        _excelReader = new VacationExcelReader(App.Configuration);
         
         // Inicializar controles con valores por defecto
         cmbLugar.Items.Add("AER");
@@ -43,6 +97,139 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         
         _cancellationTokenSource = new CancellationTokenSource();
         _ = CargarTodosLosDatosAsync(_cancellationTokenSource.Token);
+    }
+
+    private void BtnTrabajadores_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleDrawer();
+    }
+
+    private void ToggleDrawer()
+    {
+        _isDrawerOpen = !_isDrawerOpen;
+
+        if (_isDrawerOpen)
+        {
+            var openStoryboard = (Storyboard)FindResource("OpenDrawerStoryboard");
+            openStoryboard?.Begin();
+            // Cargar empleados cuando se abre el drawer por primera vez
+            if (AllEmployees.Count == 0)
+            {
+                _ = CargarEmpleadosAsync();
+            }
+        }
+        else
+        {
+            var closeStoryboard = (Storyboard)FindResource("CloseDrawerStoryboard");
+            closeStoryboard?.Begin();
+        }
+    }
+
+    private async Task CargarEmpleadosAsync()
+    {
+        try
+        {
+            if (txtDetalleEmpleado != null)
+            {
+                txtDetalleEmpleado.Text = "Cargando empleados...";
+            }
+            
+            var empleados = await _excelReader.GetAsignacionesAsync();
+            
+            AllEmployees.Clear();
+            foreach (var empleado in empleados)
+            {
+                AllEmployees.Add(empleado);
+            }
+
+            AplicarFiltros();
+            
+            if (txtDetalleEmpleado != null)
+            {
+                txtDetalleEmpleado.Text = AllEmployees.Count == 0 
+                    ? "No se encontraron empleados" 
+                    : "Seleccione un empleado";
+            }
+        }
+        catch (Exception ex)
+        {
+            if (txtDetalleEmpleado != null)
+            {
+                txtDetalleEmpleado.Text = $"Error al cargar: {ex.Message}";
+            }
+            MessageBox.Show($"Error al cargar empleados: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void AplicarFiltros()
+    {
+        var query = AllEmployees.AsEnumerable();
+
+        // Filtrar por zona
+        if (SelectedZona != "Todas")
+        {
+            query = query.Where(e => string.Equals(e.Zona, SelectedZona, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Filtrar por texto de búsqueda
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var searchLower = SearchText.ToLowerInvariant();
+            query = query.Where(e => e.Name.ToLowerInvariant().Contains(searchLower));
+        }
+
+        FilteredEmployees.Clear();
+        foreach (var empleado in query.OrderBy(e => e.Name))
+        {
+            FilteredEmployees.Add(empleado);
+        }
+
+        if (lstEmpleados != null)
+        {
+            lstEmpleados.ItemsSource = FilteredEmployees;
+        }
+    }
+
+    private void CmbZona_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (cmbZona.SelectedItem is System.Windows.Controls.ComboBoxItem selectedItem)
+        {
+            var zona = selectedItem.Content?.ToString() ?? "Todas";
+            if (_selectedZona != zona)
+            {
+                _selectedZona = zona;
+                AplicarFiltros();
+            }
+        }
+    }
+
+    private void TxtBusquedaEmpleado_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        var newText = txtBusquedaEmpleado.Text ?? string.Empty;
+        if (_searchText != newText)
+        {
+            _searchText = newText;
+            AplicarFiltros();
+        }
+    }
+
+    private void LstEmpleados_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        SelectedEmployee = lstEmpleados.SelectedItem as EmployeeItem;
+    }
+
+    private void ActualizarDetalleEmpleado()
+    {
+        if (txtDetalleEmpleado == null) return;
+        
+        if (SelectedEmployee != null)
+        {
+            txtDetalleEmpleado.Text = $"Turnos de {SelectedEmployee.Name} (próximamente)";
+        }
+        else
+        {
+            txtDetalleEmpleado.Text = "Seleccione un empleado";
+        }
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)

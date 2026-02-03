@@ -11,6 +11,7 @@ namespace Turnos.App;
 public partial class App : Application
 {
     public static TurnosRepository TurnosRepository { get; private set; } = null!;
+    public static IConfiguration Configuration { get; private set; } = null!;
 
     public App()
     {
@@ -42,6 +43,7 @@ public partial class App : Application
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             var configuration = builder.Build();
+            Configuration = configuration;
 
             // Leer connection string
             var connectionString = configuration.GetConnectionString("Db");
