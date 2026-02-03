@@ -41,7 +41,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // Cancelar carga al cerrar ventana
         Closing += MainWindow_Closing;
         
-        _ = CargarTodosLosDatosAsync();
+        _cancellationTokenSource = new CancellationTokenSource();
+        _ = CargarTodosLosDatosAsync(_cancellationTokenSource.Token);
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
@@ -56,21 +57,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void BtnCargar_Click(object sender, RoutedEventArgs e)
     {
-        // Si ya hay una carga en curso, cancelarla
+        // Si ya hay una carga en curso, cancelarla y disposear el CTS anterior
         if (_cancellationTokenSource != null && !_cancellationTokenSource.Token.IsCancellationRequested)
         {
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = null;
         }
 
         // Crear nuevo CancellationTokenSource para esta carga
         _cancellationTokenSource = new CancellationTokenSource();
-        await CargarTodosLosDatosAsync();
+        await CargarTodosLosDatosAsync(_cancellationTokenSource.Token);
     }
 
-    private async Task CargarTodosLosDatosAsync()
+    private async Task CargarTodosLosDatosAsync(CancellationToken ct)
     {
-        var ct = _cancellationTokenSource?.Token ?? CancellationToken.None;
         var hayError = false;
         var swTotal = Stopwatch.StartNew();
 
@@ -302,11 +303,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             btnCargar.IsEnabled = true;
             progressBar.Visibility = Visibility.Collapsed;
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-            }
         }
     }
 
