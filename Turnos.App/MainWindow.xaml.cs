@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media.Animation;
 using Microsoft.Extensions.Configuration;
 using Turnos.App.Models;
 using Turnos.App.Services;
@@ -110,8 +109,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         if (_isDrawerOpen)
         {
-            var openStoryboard = (Storyboard)FindResource("OpenDrawerStoryboard");
-            openStoryboard?.Begin();
+            drawerColumn.Width = new GridLength(350);
             // Cargar empleados cuando se abre el drawer por primera vez
             if (AllEmployees.Count == 0)
             {
@@ -120,8 +118,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         else
         {
-            var closeStoryboard = (Storyboard)FindResource("CloseDrawerStoryboard");
-            closeStoryboard?.Begin();
+            drawerColumn.Width = new GridLength(0);
         }
     }
 
