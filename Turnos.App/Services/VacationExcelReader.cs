@@ -33,7 +33,7 @@ public class VacationExcelReader
             var asignacionesPath = _configuration["Vacaciones:AsignacionesPath"];
             if (string.IsNullOrEmpty(asignacionesPath))
             {
-                throw new InvalidOperationException("No se encontró la configuración 'Vacaciones:AsignacionesPath' en appsettings.json");
+                throw new InvalidOperationException("No se encontró la configuración 'Vacaciones:AsignacionesPath' en appsettings.json.\nVerifique que la ruta esté configurada correctamente.");
             }
 
             var basePath = AppContext.BaseDirectory;
@@ -41,7 +41,7 @@ public class VacationExcelReader
 
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException($"No se encontró el archivo Excel: {fullPath}");
+                throw new FileNotFoundException($"No se encontró el archivo Excel.\nRuta esperada: {fullPath}");
             }
 
             var employees = new HashSet<EmployeeItem>(new EmployeeItemEqualityComparer());
@@ -65,7 +65,8 @@ public class VacationExcelReader
                 {
                     empleadoColIndex = cell.Address.ColumnNumber;
                 }
-                else if (string.Equals(cellValue, "Zona", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(cellValue, "Zona", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(cellValue, "ZONA", StringComparison.OrdinalIgnoreCase))
                 {
                     zonaColIndex = cell.Address.ColumnNumber;
                 }
@@ -73,7 +74,7 @@ public class VacationExcelReader
 
             if (empleadoColIndex == -1 || zonaColIndex == -1)
             {
-                throw new InvalidOperationException("No se encontraron las columnas 'Empleado' y/o 'Zona' en el archivo Excel");
+                throw new InvalidOperationException($"No se encontraron las columnas requeridas en el archivo Excel.\nRuta: {fullPath}\nColumnas esperadas: 'Empleado' y 'Zona' o 'ZONA'");
             }
 
             var dataRange = worksheet.Range(headerRow.RowNumber() + 1, empleadoColIndex, worksheet.LastRowUsed()?.RowNumber() ?? headerRow.RowNumber() + 1, Math.Max(empleadoColIndex, zonaColIndex));
@@ -112,7 +113,7 @@ public class VacationExcelReader
             var modulosPath = _configuration["Vacaciones:ModulosPath"];
             if (string.IsNullOrEmpty(modulosPath))
             {
-                throw new InvalidOperationException("No se encontró la configuración 'Vacaciones:ModulosPath' en appsettings.json");
+                throw new InvalidOperationException("No se encontró la configuración 'Vacaciones:ModulosPath' en appsettings.json.\nVerifique que la ruta esté configurada correctamente.");
             }
 
             var basePath = AppContext.BaseDirectory;
@@ -120,7 +121,7 @@ public class VacationExcelReader
 
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException($"No se encontró el archivo Excel: {fullPath}");
+                throw new FileNotFoundException($"No se encontró el archivo Excel.\nRuta esperada: {fullPath}");
             }
 
             var modulos = new List<ModuloVacacion>();
@@ -141,7 +142,9 @@ public class VacationExcelReader
             foreach (var cell in headerRow.CellsUsed())
             {
                 var cellValue = cell.GetString().Trim();
-                if (string.Equals(cellValue, "Modulo", StringComparison.OrdinalIgnoreCase))
+                // Aceptar "Módulo" (con tilde) o "Modulo" (sin tilde)
+                if (string.Equals(cellValue, "Modulo", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(cellValue, "Módulo", StringComparison.OrdinalIgnoreCase))
                 {
                     moduloColIndex = cell.Address.ColumnNumber;
                 }
@@ -159,18 +162,57 @@ public class VacationExcelReader
 
             if (moduloColIndex == -1 || fechaInicioColIndex == -1 || fechaFinColIndex == -1)
             {
-                throw new InvalidOperationException("No se encontraron las columnas 'Modulo', 'Fecha Inicio' y/o 'Fecha Fin' en el archivo Excel");
+                throw new InvalidOperationException($"No se encontraron las columnas requeridas en el archivo Excel.\nRuta: {fullPath}\nColumnas esperadas: 'Módulo' o 'Modulo', 'Fecha Inicio' y 'Fecha Fin'");
             }
 
             var dataRange = worksheet.Range(headerRow.RowNumber() + 1, moduloColIndex, worksheet.LastRowUsed()?.RowNumber() ?? headerRow.RowNumber() + 1, Math.Max(moduloColIndex, Math.Max(fechaInicioColIndex, fechaFinColIndex)));
 
             foreach (var row in dataRange.RowsUsed())
             {
-                var moduloStr = row.Cell(moduloColIndex).GetString().Trim();
+                var moduloCell = row.Cell(moduloColIndex);
                 var fechaInicioCell = row.Cell(fechaInicioColIndex);
                 var fechaFinCell = row.Cell(fechaFinColIndex);
 
-                if (!string.IsNullOrEmpty(moduloStr) && fechaInicioCell.TryGetValue(out DateTime fechaInicio) && fechaFinCell.TryGetValue(out DateTime fechaFin))
+                // Parsear módulo como int o string
+                string moduloStr;
+                if (moduloCell.TryGetValue(out int moduloInt))
+                {
+                    moduloStr = moduloInt.ToString();
+                }
+                else
+                {
+                    moduloStr = moduloCell.GetString().Trim();
+                }
+
+                // Parsear fechas (pueden venir como DateTime o como string dd/MM/yyyy)
+                DateTime fechaInicio;
+                DateTime fechaFin;
+                
+                bool fechaInicioOk = fechaInicioCell.TryGetValue(out fechaInicio);
+                bool fechaFinOk = fechaFinCell.TryGetValue(out fechaFin);
+                
+                // Si no se pudo parsear como DateTime, intentar como string
+                if (!fechaInicioOk)
+                {
+                    var fechaInicioStr = fechaInicioCell.GetString().Trim();
+                    if (DateTime.TryParseExact(fechaInicioStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out var fechaInicioParsed))
+                    {
+                        fechaInicio = fechaInicioParsed;
+                        fechaInicioOk = true;
+                    }
+                }
+                
+                if (!fechaFinOk)
+                {
+                    var fechaFinStr = fechaFinCell.GetString().Trim();
+                    if (DateTime.TryParseExact(fechaFinStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out var fechaFinParsed))
+                    {
+                        fechaFin = fechaFinParsed;
+                        fechaFinOk = true;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(moduloStr) && fechaInicioOk && fechaFinOk)
                 {
                     modulos.Add(new ModuloVacacion
                     {
@@ -199,7 +241,7 @@ public class VacationExcelReader
             var asignacionesPath = _configuration["Vacaciones:AsignacionesPath"];
             if (string.IsNullOrEmpty(asignacionesPath))
             {
-                throw new InvalidOperationException("No se encontró la configuración 'Vacaciones:AsignacionesPath' en appsettings.json");
+                throw new InvalidOperationException("No se encontró la configuración 'Vacaciones:AsignacionesPath' en appsettings.json.\nVerifique que la ruta esté configurada correctamente.");
             }
 
             var basePath = AppContext.BaseDirectory;
@@ -207,7 +249,7 @@ public class VacationExcelReader
 
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException($"No se encontró el archivo Excel: {fullPath}");
+                throw new FileNotFoundException($"No se encontró el archivo Excel.\nRuta esperada: {fullPath}");
             }
 
             var asignaciones = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -248,15 +290,29 @@ public class VacationExcelReader
             foreach (var row in dataRange.RowsUsed())
             {
                 var empleado = row.Cell(empleadoColIndex).GetString().Trim();
-                var modulo = row.Cell(moduloColIndex).GetString().Trim();
-
-                if (!string.IsNullOrEmpty(empleado) && !string.IsNullOrEmpty(modulo))
+                var moduloCell = row.Cell(moduloColIndex);
+                
+                if (!string.IsNullOrEmpty(empleado))
                 {
-                    if (!asignaciones.ContainsKey(empleado))
+                    // Intentar parsear como int primero, luego como string
+                    string moduloStr;
+                    if (moduloCell.TryGetValue(out int moduloInt))
                     {
-                        asignaciones[empleado] = new List<string>();
+                        moduloStr = moduloInt.ToString();
                     }
-                    asignaciones[empleado].Add(modulo);
+                    else
+                    {
+                        moduloStr = moduloCell.GetString().Trim();
+                    }
+                    
+                    if (!string.IsNullOrEmpty(moduloStr))
+                    {
+                        if (!asignaciones.ContainsKey(empleado))
+                        {
+                            asignaciones[empleado] = new List<string>();
+                        }
+                        asignaciones[empleado].Add(moduloStr);
+                    }
                 }
             }
 

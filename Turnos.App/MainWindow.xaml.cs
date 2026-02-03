@@ -111,7 +111,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             // Modo trabajadores: mostrar panel izquierdo ocupando todo el ancho
             drawerColumn.Width = new GridLength(1, GridUnitType.Star);
-            contenidoDerecho.Visibility = Visibility.Collapsed;
+            RightContent.Visibility = Visibility.Collapsed;
+            btnCargar.IsEnabled = false;
+            progressBar.Visibility = Visibility.Collapsed;
             txtEstado.Text = "Modo trabajadores";
             
             // Cargar empleados cuando se entra al modo trabajadores por primera vez
@@ -124,7 +126,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             // Modo normal: ocultar panel izquierdo y mostrar contenido derecho
             drawerColumn.Width = new GridLength(0);
-            contenidoDerecho.Visibility = Visibility.Visible;
+            RightContent.Visibility = Visibility.Visible;
+            btnCargar.IsEnabled = true;
             txtEstado.Text = "Listo";
         }
     }
@@ -187,11 +190,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             FilteredEmployees.Add(empleado);
         }
-
-        if (lstEmpleados != null)
-        {
-            lstEmpleados.ItemsSource = FilteredEmployees;
-        }
     }
 
     private void CmbZona_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -245,19 +243,31 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     // Construir lista de semanas de descanso
                     var semanasDescanso = new List<string>();
                     
-                    foreach (var moduloNum in modulosEmpleado.OrderBy(m => m))
+                    // Ordenar módulos numéricamente (parsear como int si es posible)
+                    var modulosOrdenados = modulosEmpleado.OrderBy(m =>
+                    {
+                        if (int.TryParse(m, out int num))
+                            return num;
+                        return int.MaxValue; // Si no es numérico, ponerlo al final
+                    }).ThenBy(m => m);
+                    
+                    foreach (var moduloNum in modulosOrdenados)
                     {
                         if (modulosDict.TryGetValue(moduloNum, out var modulo))
                         {
                             var fechaInicioStr = modulo.FechaInicio.ToString("dd/MM/yyyy");
                             var fechaFinStr = modulo.FechaFin.ToString("dd/MM/yyyy");
-                            semanasDescanso.Add($"M{moduloNum} ({fechaInicioStr}-{fechaFinStr})");
+                            semanasDescanso.Add($"M{moduloNum} ({fechaInicioStr} - {fechaFinStr})");
+                        }
+                        else
+                        {
+                            semanasDescanso.Add($"M{moduloNum} (sin fechas)");
                         }
                     }
                     
                     if (semanasDescanso.Count > 0)
                     {
-                        txtDetalleEmpleado.Text = $"Semanas de descanso:\n{string.Join("\n", semanasDescanso)}";
+                        txtDetalleEmpleado.Text = $"Descansos de {SelectedEmployee.Name}:\n{string.Join("\n", semanasDescanso)}";
                     }
                     else
                     {
@@ -272,6 +282,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (Exception ex)
             {
                 txtDetalleEmpleado.Text = $"Error al cargar semanas de descanso: {ex.Message}";
+                MessageBox.Show($"Error al cargar semanas de descanso:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         else

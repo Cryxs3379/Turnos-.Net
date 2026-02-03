@@ -113,6 +113,7 @@
                                      Height="300"
                                      Margin="0,0,0,12"
                                      SelectionChanged="LstEmpleados_SelectionChanged"
+                                     ItemsSource="{Binding FilteredEmployees}"
                                      DisplayMemberPath="Name"
                                      Style="{DynamicResource MaterialDesignListBox}"/>
 
@@ -138,7 +139,7 @@
             </materialDesign:Card>
 
             <!-- CONTENIDO DERECHO -->
-            <materialDesign:Card x:Name="contenidoDerecho"
+            <materialDesign:Card x:Name="RightContent"
                                  Grid.Column="1"
                                  Padding="0">
                 <Border CornerRadius="12"
