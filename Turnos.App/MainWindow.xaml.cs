@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Extensions.Configuration;
 using Turnos.App.Models;
 using Turnos.App.Services;
@@ -34,6 +36,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public ObservableCollection<EmployeeItem> AllEmployees { get; } = new();
     public ObservableCollection<EmployeeItem> FilteredEmployees { get; } = new();
     public ObservableCollection<string> SelectedEmployeeBreaks { get; } = new();
+
+    // Colecciones para totales por día y hora
+    public ObservableCollection<SemanaHoraRow> TotalesSemana { get; } = new();
+    public ObservableCollection<ResumenDia> ResumenDias { get; } = new();
+
+    // Campos privados para guardar datos originales de los 7 datasets
+    private List<string[]>? _datosEntradasParking;
+    private List<string[]>? _datosEntradasRentACar;
+    private List<string[]>? _datosEntradasReservaParking;
+    private List<string[]>? _datosEntradaReservaRentACar;
+    private List<string[]>? _datosSalidasParking;
+    private List<string[]>? _datosSalidasRentACar;
+    private List<string[]>? _datosSalidaReservaParking;
 
     private string _selectedZona = "Todas";
     public string SelectedZona
@@ -399,6 +414,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 sw.Stop();
                 Debug.WriteLine($"[Entradas Parking] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosEntradasParking.Count} registros");
                 
+                // Guardar datos originales para totales
+                _datosEntradasParking = datosEntradasParking;
+                
                 EntradasParking.Clear();
                 foreach (var fila in datosEntradasParking)
                 {
@@ -409,11 +427,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Entradas Parking] Operación cancelada");
+                _datosEntradasParking = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosEntradasParking = null;
                 Debug.WriteLine($"[Entradas Parking] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Entradas Parking': {ex.Message}", "Error - Entradas Parking", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -426,6 +446,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 sw.Stop();
                 Debug.WriteLine($"[Entradas Rent a Car] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosEntradasRentACar.Count} registros");
                 
+                // Guardar datos originales para totales
+                _datosEntradasRentACar = datosEntradasRentACar;
+                
                 EntradasRentACar.Clear();
                 foreach (var fila in datosEntradasRentACar)
                 {
@@ -436,11 +459,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Entradas Rent a Car] Operación cancelada");
+                _datosEntradasRentACar = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosEntradasRentACar = null;
                 Debug.WriteLine($"[Entradas Rent a Car] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Entradas Rent a Car': {ex.Message}", "Error - Entradas Rent a Car", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -453,6 +478,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 sw.Stop();
                 Debug.WriteLine($"[Entradas Reserva Parking] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosEntradasReservaParking.Count} registros");
                 
+                // Guardar datos originales para totales
+                _datosEntradasReservaParking = datosEntradasReservaParking;
+                
                 EntradasReservaParking.Clear();
                 foreach (var fila in datosEntradasReservaParking)
                 {
@@ -463,11 +491,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Entradas Reserva Parking] Operación cancelada");
+                _datosEntradasReservaParking = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosEntradasReservaParking = null;
                 Debug.WriteLine($"[Entradas Reserva Parking] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Entradas Reserva Parking': {ex.Message}", "Error - Entradas Reserva Parking", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -480,6 +510,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 sw.Stop();
                 Debug.WriteLine($"[Entrada Reserva Rent a Car] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosEntradaReservaRentACar.Count} registros");
                 
+                // Guardar datos originales para totales
+                _datosEntradaReservaRentACar = datosEntradaReservaRentACar;
+                
                 EntradaReservaRentACar.Clear();
                 foreach (var fila in datosEntradaReservaRentACar)
                 {
@@ -490,11 +523,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Entrada Reserva Rent a Car] Operación cancelada");
+                _datosEntradaReservaRentACar = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosEntradaReservaRentACar = null;
                 Debug.WriteLine($"[Entrada Reserva Rent a Car] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Entrada Reserva Rent a Car': {ex.Message}", "Error - Entrada Reserva Rent a Car", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -507,6 +542,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 sw.Stop();
                 Debug.WriteLine($"[Salidas Parking] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosSalidasParking.Count} registros");
                 
+                // Guardar datos originales para totales
+                _datosSalidasParking = datosSalidasParking;
+                
                 SalidasParking.Clear();
                 foreach (var fila in datosSalidasParking)
                 {
@@ -517,11 +555,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Salidas Parking] Operación cancelada");
+                _datosSalidasParking = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosSalidasParking = null;
                 Debug.WriteLine($"[Salidas Parking] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Salidas Parking': {ex.Message}", "Error - Salidas Parking", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -533,6 +573,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 var datosSalidasRentACar = await _turnosRepository.GetSalidasRentACarAsync(fechaInicio, fechaFin, lugar, ct);
                 sw.Stop();
                 Debug.WriteLine($"[Salidas Rent a Car] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosSalidasRentACar.Count} registros");
+                
+                // Guardar datos originales para totales
+                _datosSalidasRentACar = datosSalidasRentACar;
                 
                 SalidasRentACar.Clear();
                 foreach (var fila in datosSalidasRentACar)
@@ -550,11 +593,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Salidas Rent a Car] Operación cancelada");
+                _datosSalidasRentACar = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosSalidasRentACar = null;
                 Debug.WriteLine($"[Salidas Rent a Car] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Salidas Rent a Car': {ex.Message}", "Error - Salidas Rent a Car", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -567,6 +612,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 sw.Stop();
                 Debug.WriteLine($"[Salida Reserva Parking] Consulta completada en {sw.ElapsedMilliseconds}ms - {datosSalidaReservaParking.Count} registros");
                 
+                // Guardar datos originales para totales
+                _datosSalidaReservaParking = datosSalidaReservaParking;
+                
                 SalidaReservaParking.Clear();
                 foreach (var fila in datosSalidaReservaParking)
                 {
@@ -577,13 +625,51 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("[Salida Reserva Parking] Operación cancelada");
+                _datosSalidaReservaParking = null;
                 throw;
             }
             catch (Exception ex)
             {
                 hayError = true;
+                _datosSalidaReservaParking = null;
                 Debug.WriteLine($"[Salida Reserva Parking] Error: {ex.Message}");
                 MessageBox.Show($"Error en pestaña 'Salida Reserva Parking': {ex.Message}", "Error - Salida Reserva Parking", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            // Calcular totales por día y hora
+            try
+            {
+                var inicioSemana = DateOnly.FromDateTime(fechaInicio);
+                var finSemana = DateOnly.FromDateTime(fechaFin);
+                
+                var (tabla, resumen) = ConstruirTotalesSemana(inicioSemana, finSemana);
+                
+                // Actualizar UI en el hilo correcto
+                Dispatcher.Invoke(() =>
+                {
+                    TotalesSemana.Clear();
+                    foreach (var fila in tabla)
+                    {
+                        TotalesSemana.Add(fila);
+                    }
+                    
+                    ResumenDias.Clear();
+                    foreach (var dia in resumen)
+                    {
+                        ResumenDias.Add(dia);
+                    }
+                    
+                    // Generar columnas dinámicas
+                    int numDias = (finSemana.DayNumber - inicioSemana.DayNumber) + 1;
+                    if (numDias > 7) numDias = 7;
+                    GenerarColumnasTotalesSemana(inicioSemana, numDias);
+                    GenerarColumnasResumenDias();
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Totales] Error al calcular totales: {ex.Message}");
+                // No mostrar MessageBox aquí para no interrumpir el flujo
             }
 
             swTotal.Stop();
@@ -610,6 +696,430 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             progressBar.Visibility = Visibility.Collapsed;
         }
     }
+
+    #region Helpers de parseo robusto
+
+    private bool TryParseFecha(string fechaStr, out DateOnly fecha)
+    {
+        fecha = default;
+        if (string.IsNullOrWhiteSpace(fechaStr))
+            return false;
+
+        var fechaStrTrimmed = fechaStr.Trim();
+
+        // Intentar con cultura es-ES
+        if (DateTime.TryParse(fechaStrTrimmed, System.Globalization.CultureInfo.GetCultureInfo("es-ES"), 
+            System.Globalization.DateTimeStyles.None, out DateTime dtEs))
+        {
+            fecha = DateOnly.FromDateTime(dtEs);
+            return true;
+        }
+
+        // Intentar con InvariantCulture
+        if (DateTime.TryParse(fechaStrTrimmed, System.Globalization.CultureInfo.InvariantCulture, 
+            System.Globalization.DateTimeStyles.None, out DateTime dtInv))
+        {
+            fecha = DateOnly.FromDateTime(dtInv);
+            return true;
+        }
+
+        // Intentar formato específico "dd/MM/yyyy"
+        if (DateTime.TryParseExact(fechaStrTrimmed, "dd/MM/yyyy", 
+            System.Globalization.CultureInfo.InvariantCulture, 
+            System.Globalization.DateTimeStyles.None, out DateTime dtExact))
+        {
+            fecha = DateOnly.FromDateTime(dtExact);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryParseHora(string horaStr, out int hour)
+    {
+        hour = 0;
+        if (string.IsNullOrWhiteSpace(horaStr))
+            return false;
+
+        var horaStrTrimmed = horaStr.Trim();
+
+        // Intentar TimeSpan (acepta "HH:mm", "HH:mm:ss", "H:mm")
+        if (TimeSpan.TryParse(horaStrTrimmed, out TimeSpan ts))
+        {
+            hour = ts.Hours;
+            return true;
+        }
+
+        // Intentar DateTime y extraer hora
+        if (DateTime.TryParse(horaStrTrimmed, out DateTime dt))
+        {
+            hour = dt.Hour;
+            return true;
+        }
+
+        // Intentar formato específico "HH:mm"
+        if (TimeSpan.TryParseExact(horaStrTrimmed, "HH:mm", 
+            System.Globalization.CultureInfo.InvariantCulture, out TimeSpan tsExact))
+        {
+            hour = tsExact.Hours;
+            return true;
+        }
+
+        return false;
+    }
+
+    #endregion
+
+    #region Procesamiento de totales
+
+    private void ProcesarDataset(
+        List<string[]>? dataset,
+        int idxFecha,
+        int idxHora,
+        int[,] contadoresEntradas,
+        int[,] contadoresSalidas,
+        DateOnly inicioSemana,
+        DateOnly finSemana,
+        bool esEntrada)
+    {
+        if (dataset == null)
+            return;
+
+        foreach (var fila in dataset)
+        {
+            if (fila == null || fila.Length <= Math.Max(idxFecha, idxHora))
+                continue;
+
+            if (!TryParseFecha(fila[idxFecha], out DateOnly fecha))
+                continue;
+
+            if (!TryParseHora(fila[idxHora], out int hora))
+                continue;
+
+            // Verificar que la fecha esté en el rango
+            if (fecha < inicioSemana || fecha > finSemana)
+                continue;
+
+            // Calcular índice del día (0-6)
+            int diaIdx = (fecha.DayNumber - inicioSemana.DayNumber);
+            if (diaIdx < 0 || diaIdx >= 7)
+                continue;
+
+            // Validar hora (0-23)
+            if (hora < 0 || hora > 23)
+                continue;
+
+            // Incrementar contador correspondiente
+            if (esEntrada)
+            {
+                contadoresEntradas[diaIdx, hora]++;
+            }
+            else
+            {
+                contadoresSalidas[diaIdx, hora]++;
+            }
+        }
+    }
+
+    private (List<SemanaHoraRow> tabla, List<ResumenDia> resumen) ConstruirTotalesSemana(
+        DateOnly inicioSemana,
+        DateOnly finSemana)
+    {
+        var tabla = new List<SemanaHoraRow>();
+        var resumen = new List<ResumenDia>();
+
+        // Validar y ajustar rango
+        int diasRango = (finSemana.DayNumber - inicioSemana.DayNumber) + 1;
+        bool rangoRecortado = false;
+        if (diasRango > 7)
+        {
+            finSemana = inicioSemana.AddDays(6);
+            diasRango = 7;
+            rangoRecortado = true;
+        }
+
+        // Inicializar arrays de contadores
+        int[,] contadoresEntradas = new int[7, 24];
+        int[,] contadoresSalidas = new int[7, 24];
+
+        // Lista de datasets fallidos para mostrar aviso
+        var datasetsFallidos = new List<string>();
+
+        // Procesar cada dataset con sus índices específicos
+        // Entradas
+        if (_datosEntradasParking != null)
+        {
+            ProcesarDataset(_datosEntradasParking, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, true);
+        }
+        else
+        {
+            datasetsFallidos.Add("Entradas Parking");
+        }
+
+        if (_datosEntradasRentACar != null)
+        {
+            ProcesarDataset(_datosEntradasRentACar, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, true);
+        }
+        else
+        {
+            datasetsFallidos.Add("Entradas Rent a Car");
+        }
+
+        if (_datosEntradasReservaParking != null)
+        {
+            ProcesarDataset(_datosEntradasReservaParking, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, true);
+        }
+        else
+        {
+            datasetsFallidos.Add("Entradas Reserva Parking");
+        }
+
+        if (_datosEntradaReservaRentACar != null)
+        {
+            ProcesarDataset(_datosEntradaReservaRentACar, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, true);
+        }
+        else
+        {
+            datasetsFallidos.Add("Entrada Reserva Rent a Car");
+        }
+
+        // Salidas
+        if (_datosSalidasParking != null)
+        {
+            ProcesarDataset(_datosSalidasParking, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, false);
+        }
+        else
+        {
+            datasetsFallidos.Add("Salidas Parking");
+        }
+
+        if (_datosSalidasRentACar != null)
+        {
+            ProcesarDataset(_datosSalidasRentACar, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, false);
+        }
+        else
+        {
+            datasetsFallidos.Add("Salidas Rent a Car");
+        }
+
+        if (_datosSalidaReservaParking != null)
+        {
+            ProcesarDataset(_datosSalidaReservaParking, 1, 2, contadoresEntradas, contadoresSalidas, inicioSemana, finSemana, false);
+        }
+        else
+        {
+            datasetsFallidos.Add("Salida Reserva Parking");
+        }
+
+        // Construir tabla de 24 filas (una por hora)
+        for (int h = 0; h < 24; h++)
+        {
+            var fila = new SemanaHoraRow
+            {
+                Rango = h == 23 ? "23-00" : $"{h:D2}-{(h + 1):D2}"
+            };
+
+            // Asignar valores para cada día (0-6)
+            fila.D0_Ent = contadoresEntradas[0, h];
+            fila.D0_Sal = contadoresSalidas[0, h];
+            fila.D1_Ent = contadoresEntradas[1, h];
+            fila.D1_Sal = contadoresSalidas[1, h];
+            fila.D2_Ent = contadoresEntradas[2, h];
+            fila.D2_Sal = contadoresSalidas[2, h];
+            fila.D3_Ent = contadoresEntradas[3, h];
+            fila.D3_Sal = contadoresSalidas[3, h];
+            fila.D4_Ent = contadoresEntradas[4, h];
+            fila.D4_Sal = contadoresSalidas[4, h];
+            fila.D5_Ent = contadoresEntradas[5, h];
+            fila.D5_Sal = contadoresSalidas[5, h];
+            fila.D6_Ent = contadoresEntradas[6, h];
+            fila.D6_Sal = contadoresSalidas[6, h];
+
+            tabla.Add(fila);
+        }
+
+        // Construir resumen por día
+        for (int d = 0; d < diasRango; d++)
+        {
+            var fechaDia = inicioSemana.AddDays(d);
+            var diaLabel = fechaDia.ToString("ddd dd/MM", System.Globalization.CultureInfo.GetCultureInfo("es-ES"));
+
+            var resumenDia = new ResumenDia
+            {
+                Dia = fechaDia,
+                DiaLabel = diaLabel
+            };
+
+            // Nocturno (horas 0-7)
+            for (int h = 0; h <= 7; h++)
+            {
+                resumenDia.Noct_Ent += contadoresEntradas[d, h];
+                resumenDia.Noct_Sal += contadoresSalidas[d, h];
+            }
+
+            // Mañanas (horas 8-15)
+            for (int h = 8; h <= 15; h++)
+            {
+                resumenDia.Man_Ent += contadoresEntradas[d, h];
+                resumenDia.Man_Sal += contadoresSalidas[d, h];
+            }
+
+            // Tardes (horas 16-23)
+            for (int h = 16; h <= 23; h++)
+            {
+                resumenDia.Tar_Ent += contadoresEntradas[d, h];
+                resumenDia.Tar_Sal += contadoresSalidas[d, h];
+            }
+
+            resumen.Add(resumenDia);
+        }
+
+        // Mostrar avisos si es necesario
+        if (rangoRecortado || datasetsFallidos.Count > 0)
+        {
+            var mensajes = new List<string>();
+            if (rangoRecortado)
+            {
+                mensajes.Add("Rango recortado a 7 días");
+            }
+            if (datasetsFallidos.Count > 0)
+            {
+                mensajes.Add($"Totales parciales: falló {string.Join(", ", datasetsFallidos)}");
+            }
+            
+            Dispatcher.Invoke(() =>
+            {
+                txtEstado.Text = string.Join("; ", mensajes);
+            });
+        }
+
+        return (tabla, resumen);
+    }
+
+    private void GenerarColumnasTotalesSemana(DateOnly inicioSemana, int numDias)
+    {
+        if (dgvTotalesSemana == null)
+            return;
+
+        dgvTotalesSemana.Columns.Clear();
+
+        // Columna fija "Rango"
+        dgvTotalesSemana.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Rango",
+            Binding = new System.Windows.Data.Binding("Rango"),
+            Width = new DataGridLength(1, DataGridLengthUnitType.Auto)
+        });
+
+        // Columnas dinámicas por día
+        for (int diaIdx = 0; diaIdx < numDias && diaIdx < 7; diaIdx++)
+        {
+            var fecha = inicioSemana.AddDays(diaIdx);
+            var label = fecha.ToString("ddd dd/MM", System.Globalization.CultureInfo.GetCultureInfo("es-ES"));
+
+            // Columna Entradas
+            dgvTotalesSemana.Columns.Add(new DataGridTextColumn
+            {
+                Header = $"{label} - Entradas",
+                Binding = new System.Windows.Data.Binding($"D{diaIdx}_Ent"),
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+            });
+
+            // Columna Salidas
+            dgvTotalesSemana.Columns.Add(new DataGridTextColumn
+            {
+                Header = $"{label} - Salidas",
+                Binding = new System.Windows.Data.Binding($"D{diaIdx}_Sal"),
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+            });
+        }
+    }
+
+    private void GenerarColumnasResumenDias()
+    {
+        if (dgvResumenDias == null)
+            return;
+
+        dgvResumenDias.Columns.Clear();
+
+        // Columna Día
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Día",
+            Binding = new System.Windows.Data.Binding("DiaLabel"),
+            Width = new DataGridLength(1, DataGridLengthUnitType.Auto)
+        });
+
+        // Nocturno
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Noct. Ent",
+            Binding = new System.Windows.Data.Binding("Noct_Ent")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Noct. Sal",
+            Binding = new System.Windows.Data.Binding("Noct_Sal")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Noct. Tot",
+            Binding = new System.Windows.Data.Binding("Noct_Tot")
+        });
+
+        // Mañanas
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Mañ. Ent",
+            Binding = new System.Windows.Data.Binding("Man_Ent")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Mañ. Sal",
+            Binding = new System.Windows.Data.Binding("Man_Sal")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Mañ. Tot",
+            Binding = new System.Windows.Data.Binding("Man_Tot")
+        });
+
+        // Tardes
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Tar. Ent",
+            Binding = new System.Windows.Data.Binding("Tar_Ent")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Tar. Sal",
+            Binding = new System.Windows.Data.Binding("Tar_Sal")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Tar. Tot",
+            Binding = new System.Windows.Data.Binding("Tar_Tot")
+        });
+
+        // Totales
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Total Ent",
+            Binding = new System.Windows.Data.Binding("TotalEnt")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Total Sal",
+            Binding = new System.Windows.Data.Binding("TotalSal")
+        });
+        dgvResumenDias.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Total Gen",
+            Binding = new System.Windows.Data.Binding("TotalGen")
+        });
+    }
+
+    #endregion
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -354,6 +354,38 @@
                             </Grid>
                         </TabItem>
 
+                        <!-- 8. Totales por día y hora -->
+                        <TabItem Header="Totales por día y hora">
+                            <Grid Margin="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- DataGrid principal (24 filas × columnas dinámicas) -->
+                                <DataGrid x:Name="dgvTotalesSemana"
+                                          Grid.Row="0"
+                                          ItemsSource="{Binding TotalesSemana}"
+                                          AutoGenerateColumns="False"
+                                          IsReadOnly="True"
+                                          CanUserAddRows="False"
+                                          Style="{DynamicResource MaterialDesignDataGrid}"/>
+                                
+                                <!-- Separador -->
+                                <Border Grid.Row="1" Height="1" Background="{DynamicResource MaterialDesignDivider}" Margin="0,8"/>
+                                
+                                <!-- Resumen por día -->
+                                <DataGrid x:Name="dgvResumenDias"
+                                          Grid.Row="2"
+                                          ItemsSource="{Binding ResumenDias}"
+                                          AutoGenerateColumns="False"
+                                          IsReadOnly="True"
+                                          CanUserAddRows="False"
+                                          Style="{DynamicResource MaterialDesignDataGrid}"/>
+                            </Grid>
+                        </TabItem>
+
                         </TabControl>
                     </Grid>
                 </Border>
