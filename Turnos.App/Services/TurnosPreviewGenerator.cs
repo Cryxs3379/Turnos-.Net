@@ -41,8 +41,7 @@ public static class TurnosPreviewGenerator
         var recNeed = BuildRecNeed(recNoctWork, recManWork, recTarWork);
         var recAssignments = AssignRecepcion(recepcion, recNeed, diasSemana, result.Warnings);
 
-        var entNeed = BuildEntNeeded(recNoctWork, recManWork, recTarWork);
-        var entAssignments = AssignEntradas(entradas, entNeed, recNoctWork, recManWork, recTarWork, diasSemana, result.Warnings);
+        var entAssignments = AssignEntradas(entradas, recNoctWork, recManWork, recTarWork, diasSemana, result.Warnings);
 
         foreach (var row in recAssignments.OrderBy(r => r.Empleado))
         {
@@ -65,18 +64,6 @@ public static class TurnosPreviewGenerator
             need[d, 0] = Math.Max(2, (int)Math.Ceiling((noct.ElementAtOrDefault(d)) / 20.0));
             need[d, 1] = Math.Max(2, (int)Math.Ceiling((man.ElementAtOrDefault(d)) / 20.0));
             need[d, 2] = Math.Max(2, (int)Math.Ceiling((tar.ElementAtOrDefault(d)) / 20.0));
-        }
-        return need;
-    }
-
-    private static int[,] BuildEntNeeded(IReadOnlyList<int> noct, IReadOnlyList<int> man, IReadOnlyList<int> tar)
-    {
-        var need = new int[7, 3];
-        for (int d = 0; d < 7; d++)
-        {
-            need[d, 0] = Math.Max(1, (int)Math.Ceiling((noct.ElementAtOrDefault(d)) / 20.0));
-            need[d, 1] = Math.Max(1, (int)Math.Ceiling((man.ElementAtOrDefault(d)) / 20.0));
-            need[d, 2] = Math.Max(1, (int)Math.Ceiling((tar.ElementAtOrDefault(d)) / 20.0));
         }
         return need;
     }
@@ -111,7 +98,6 @@ public static class TurnosPreviewGenerator
 
     private static List<TurnoRow> AssignEntradas(
         IReadOnlyList<TurnoEmployee> employees,
-        int[,] needed,
         IReadOnlyList<int> noctWork,
         IReadOnlyList<int> manWork,
         IReadOnlyList<int> tarWork,
@@ -122,6 +108,10 @@ public static class TurnosPreviewGenerator
         var states = BuildStates(employees);
         var rotationPool = states.Where(s => !s.IsHoliday).OrderBy(s => s.Name).ToList();
         int rotationIndex = 0;
+        var availableEmployees = rotationPool.Count;
+        var capacityTotal = availableEmployees * 5;
+        var baseNeeded = 21;
+        var maxExtras = Math.Max(0, capacityTotal - baseNeeded);
 
         // Fase 1: base 1/1/1 con rotación de nocturnos
         for (int d = 0; d < 7; d++)
@@ -129,58 +119,86 @@ public static class TurnosPreviewGenerator
             if (!AssignRotatingNight(rotationPool, d, ref rotationIndex))
             {
                 var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
-                warnings.Add($"FALTA BASE ENT {diaLabel} N");
+                warnings.Add($"FALTA BASE ENT {diaLabel} N (asignado=0)");
             }
 
             if (!AssignSingle(states, d, 1, "ENT"))
             {
                 var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
-                warnings.Add($"FALTA BASE ENT {diaLabel} M");
+                warnings.Add($"FALTA BASE ENT {diaLabel} M (asignado=0)");
             }
 
             if (!AssignSingle(states, d, 2, "ENT"))
             {
                 var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
-                warnings.Add($"FALTA BASE ENT {diaLabel} T");
+                warnings.Add($"FALTA BASE ENT {diaLabel} T (asignado=0)");
             }
         }
 
-        // Fase 2: refuerzos según carga (extraRequired)
+        // Fase 2: refuerzos según capacidad semanal (picos de carga)
         var slots = new List<ExtraSlot>();
         for (int d = 0; d < 7; d++)
         {
             for (int t = 0; t < 3; t++)
             {
-                int baseRequired = 1;
-                int extra = Math.Max(0, needed[d, t] - baseRequired);
-                if (extra > 0)
+                int work = t == 0 ? noctWork.ElementAtOrDefault(d)
+                    : t == 1 ? manWork.ElementAtOrDefault(d)
+                    : tarWork.ElementAtOrDefault(d);
+                if (work > 0)
                 {
-                    int work = t == 0 ? noctWork.ElementAtOrDefault(d)
-                        : t == 1 ? manWork.ElementAtOrDefault(d)
-                        : tarWork.ElementAtOrDefault(d);
-                    slots.Add(new ExtraSlot(d, t, work, extra));
+                    slots.Add(new ExtraSlot(d, t, work));
                 }
             }
         }
 
+        int assignedExtras = 0;
+        var assignedSlots = new List<ExtraSlot>();
+
         foreach (var slot in slots.OrderByDescending(s => s.Work))
         {
-            int remaining = slot.ExtraRequired;
-            while (remaining > 0)
-            {
-                if (!AssignSingle(states, slot.DayIndex, slot.Turn, "ENT"))
-                {
-                    break;
-                }
-                remaining--;
-            }
+            if (assignedExtras >= maxExtras)
+                break;
 
-            if (remaining > 0)
+            if (TryAssignExtra(states, slot.DayIndex, slot.Turn))
             {
-                var diaLabel = diasSemana[slot.DayIndex].ToString("ddd dd/MM", cultura);
-                var turnoLabel = slot.Turn == 0 ? "N" : slot.Turn == 1 ? "M" : "T";
-                warnings.Add($"FALTA REFUERZO ENT {diaLabel} {turnoLabel} (faltan={remaining})");
+                assignedExtras++;
+                assignedSlots.Add(slot);
             }
+        }
+
+        // Refuerzos adicionales opcionales si queda margen
+        if (assignedExtras < maxExtras)
+        {
+            foreach (var slot in slots.OrderByDescending(s => s.Work))
+            {
+                if (assignedExtras >= maxExtras)
+                    break;
+
+                if (TryAssignExtra(states, slot.DayIndex, slot.Turn))
+                {
+                    assignedExtras++;
+                    assignedSlots.Add(slot);
+                }
+            }
+        }
+
+        if (maxExtras > 0)
+        {
+            var slotLabels = assignedSlots
+                .Select(s =>
+                {
+                    var diaLabel = diasSemana[s.DayIndex].ToString("ddd dd/MM", cultura);
+                    var turnoLabel = s.Turn == 0 ? "N" : s.Turn == 1 ? "M" : "T";
+                    return $"{diaLabel} {turnoLabel}";
+                })
+                .Distinct()
+                .ToList();
+
+            var slotsResumen = slotLabels.Count == 0
+                ? "sin_asignacion"
+                : string.Join(", ", slotLabels);
+
+            warnings.Add($"REFUERZOS ENT: presupuesto={maxExtras}, asignados={assignedExtras}, topSlots={slotsResumen}");
         }
 
         return FinalizeAssignments(states);
@@ -259,6 +277,11 @@ public static class TurnosPreviewGenerator
         return true;
     }
 
+    private static bool TryAssignExtra(List<EmployeeState> states, int day, int shift)
+    {
+        return AssignSingle(states, day, shift, "ENT");
+    }
+
     private static bool AssignRotatingNight(
         List<EmployeeState> rotationPool,
         int day,
@@ -313,7 +336,7 @@ public static class TurnosPreviewGenerator
         return states.Select(s => s.ToRow()).ToList();
     }
 
-    private readonly record struct ExtraSlot(int DayIndex, int Turn, int Work, int ExtraRequired);
+    private readonly record struct ExtraSlot(int DayIndex, int Turn, int Work);
 
     private class EmployeeState
     {
