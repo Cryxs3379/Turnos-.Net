@@ -29,20 +29,20 @@ public static class TurnosPreviewGenerator
 
     public static TurnosPreviewResult Generate(
         DateOnly inicioSemana,
-        IReadOnlyList<DateOnly> diasSemana,
-        IReadOnlyList<int> recNoctWork,
-        IReadOnlyList<int> recManWork,
-        IReadOnlyList<int> recTarWork,
+        DateOnly finSemana,
+        IReadOnlyList<ResumenDia> resumenDias,
         IReadOnlyList<TurnoEmployee> recepcion,
         IReadOnlyList<TurnoEmployee> entradas)
     {
         var result = new TurnosPreviewResult();
-        var cultura = CultureInfo.GetCultureInfo("es-ES");
+        var diasSemana = Enumerable.Range(0, 7).Select(d => inicioSemana.AddDays(d)).ToList();
 
+        var (recNoctWork, recManWork, recTarWork) = BuildWorkArrays(diasSemana, resumenDias);
         var recNeed = BuildRecNeed(recNoctWork, recManWork, recTarWork);
-        var recAssignments = AssignZone("REC", recepcion, recNeed, false, cultura, diasSemana, result.Warnings);
-        var entNeed = BuildEntNeed();
-        var entAssignments = AssignZone("ENT", entradas, entNeed, true, cultura, diasSemana, result.Warnings);
+        var recAssignments = AssignRecepcion(recepcion, recNeed, diasSemana, result.Warnings);
+
+        var entNeed = BuildEntNeeded(recNoctWork, recManWork, recTarWork);
+        var entAssignments = AssignEntradas(entradas, entNeed, recNoctWork, recManWork, recTarWork, diasSemana, result.Warnings);
 
         foreach (var row in recAssignments.OrderBy(r => r.Empleado))
         {
@@ -69,75 +69,227 @@ public static class TurnosPreviewGenerator
         return need;
     }
 
-    private static int[,] BuildEntNeed()
+    private static int[,] BuildEntNeeded(IReadOnlyList<int> noct, IReadOnlyList<int> man, IReadOnlyList<int> tar)
     {
         var need = new int[7, 3];
         for (int d = 0; d < 7; d++)
         {
-            need[d, 0] = 1;
-            need[d, 1] = 2;
-            need[d, 2] = 2;
+            need[d, 0] = Math.Max(1, (int)Math.Ceiling((noct.ElementAtOrDefault(d)) / 20.0));
+            need[d, 1] = Math.Max(1, (int)Math.Ceiling((man.ElementAtOrDefault(d)) / 20.0));
+            need[d, 2] = Math.Max(1, (int)Math.Ceiling((tar.ElementAtOrDefault(d)) / 20.0));
         }
         return need;
     }
 
-    private static List<TurnoRow> AssignZone(
-        string zoneKey,
+    private static List<TurnoRow> AssignRecepcion(
         IReadOnlyList<TurnoEmployee> employees,
         int[,] need,
-        bool rotateNight,
-        CultureInfo cultura,
         IReadOnlyList<DateOnly> diasSemana,
         List<string> warnings)
     {
-        var states = employees
-            .Select(e => new EmployeeState(e.Name, e.IsHoliday))
-            .OrderBy(e => e.Name)
-            .ToList();
-
-        var staffing = new int[7, 3];
-
-        int rotationIndex = 0;
-        var rotationPool = states.Where(s => !s.IsHoliday).OrderBy(s => s.Name).ToList();
+        var cultura = CultureInfo.GetCultureInfo("es-ES");
+        var states = BuildStates(employees);
 
         for (int d = 0; d < 7; d++)
         {
             for (int t = 0; t < 3; t++)
             {
                 int required = need[d, t];
-                int assigned = 0;
-
-                if (rotateNight && t == 0)
-                {
-                    assigned = AssignWithRotation(rotationPool, d, t, required, staffing, zoneKey, ref rotationIndex);
-                }
-                else
-                {
-                    assigned = AssignByLeastWorked(states, d, t, required, staffing, zoneKey);
-                }
+                int assigned = AssignByLeastWorked(states, d, t, required, "REC");
 
                 if (assigned < required)
                 {
                     var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
                     var turnoLabel = t == 0 ? "N" : t == 1 ? "M" : "T";
-                    warnings.Add($"{zoneKey} {diaLabel} {turnoLabel} ({required - assigned})");
+                    warnings.Add($"FALTA REC {diaLabel} {turnoLabel} (need={required}, asignado={assigned})");
                 }
             }
         }
 
-        // Completar hasta 5 días trabajados si hace falta (permitiendo exceso)
-        foreach (var state in states.Where(s => !s.IsHoliday))
+        return FinalizeAssignments(states);
+    }
+
+    private static List<TurnoRow> AssignEntradas(
+        IReadOnlyList<TurnoEmployee> employees,
+        int[,] needed,
+        IReadOnlyList<int> noctWork,
+        IReadOnlyList<int> manWork,
+        IReadOnlyList<int> tarWork,
+        IReadOnlyList<DateOnly> diasSemana,
+        List<string> warnings)
+    {
+        var cultura = CultureInfo.GetCultureInfo("es-ES");
+        var states = BuildStates(employees);
+        var rotationPool = states.Where(s => !s.IsHoliday).OrderBy(s => s.Name).ToList();
+        int rotationIndex = 0;
+
+        // Fase 1: base 1/1/1 con rotación de nocturnos
+        for (int d = 0; d < 7; d++)
         {
-            while (state.WorkedDays < 5)
+            if (!AssignRotatingNight(rotationPool, d, ref rotationIndex))
             {
-                if (!TryAssignExtraShift(state, states, staffing, zoneKey))
+                var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
+                warnings.Add($"FALTA BASE ENT {diaLabel} N");
+            }
+
+            if (!AssignSingle(states, d, 1, "ENT"))
+            {
+                var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
+                warnings.Add($"FALTA BASE ENT {diaLabel} M");
+            }
+
+            if (!AssignSingle(states, d, 2, "ENT"))
+            {
+                var diaLabel = diasSemana[d].ToString("ddd dd/MM", cultura);
+                warnings.Add($"FALTA BASE ENT {diaLabel} T");
+            }
+        }
+
+        // Fase 2: refuerzos según carga (extraRequired)
+        var slots = new List<ExtraSlot>();
+        for (int d = 0; d < 7; d++)
+        {
+            for (int t = 0; t < 3; t++)
+            {
+                int baseRequired = 1;
+                int extra = Math.Max(0, needed[d, t] - baseRequired);
+                if (extra > 0)
+                {
+                    int work = t == 0 ? noctWork.ElementAtOrDefault(d)
+                        : t == 1 ? manWork.ElementAtOrDefault(d)
+                        : tarWork.ElementAtOrDefault(d);
+                    slots.Add(new ExtraSlot(d, t, work, extra));
+                }
+            }
+        }
+
+        foreach (var slot in slots.OrderByDescending(s => s.Work))
+        {
+            int remaining = slot.ExtraRequired;
+            while (remaining > 0)
+            {
+                if (!AssignSingle(states, slot.DayIndex, slot.Turn, "ENT"))
                 {
                     break;
                 }
+                remaining--;
+            }
+
+            if (remaining > 0)
+            {
+                var diaLabel = diasSemana[slot.DayIndex].ToString("ddd dd/MM", cultura);
+                var turnoLabel = slot.Turn == 0 ? "N" : slot.Turn == 1 ? "M" : "T";
+                warnings.Add($"FALTA REFUERZO ENT {diaLabel} {turnoLabel} (faltan={remaining})");
             }
         }
 
-        // Marcar OFF y HOLYDAYS
+        return FinalizeAssignments(states);
+    }
+
+    private static (int[] noct, int[] man, int[] tar) BuildWorkArrays(
+        IReadOnlyList<DateOnly> diasSemana,
+        IReadOnlyList<ResumenDia> resumenDias)
+    {
+        var noct = new int[7];
+        var man = new int[7];
+        var tar = new int[7];
+        var resumenDict = resumenDias.ToDictionary(r => r.Dia, r => r);
+
+        for (int d = 0; d < 7; d++)
+        {
+            if (resumenDict.TryGetValue(diasSemana[d], out var resumen))
+            {
+                noct[d] = resumen.Noct_Tot;
+                man[d] = resumen.Man_Tot;
+                tar[d] = resumen.Tar_Tot;
+            }
+        }
+
+        return (noct, man, tar);
+    }
+
+    private static List<EmployeeState> BuildStates(IReadOnlyList<TurnoEmployee> employees)
+    {
+        return employees
+            .Select(e => new EmployeeState(e.Name, e.IsHoliday))
+            .OrderBy(e => e.Name)
+            .ToList();
+    }
+
+    private static int AssignByLeastWorked(
+        List<EmployeeState> states,
+        int day,
+        int shift,
+        int required,
+        string zoneKey)
+    {
+        int assigned = 0;
+        var candidates = states
+            .Where(s => s.CanWork(day))
+            .OrderBy(s => s.WorkedDays)
+            .ThenBy(s => s.NightCount)
+            .ThenBy(s => s.Name)
+            .ToList();
+
+        foreach (var candidate in candidates)
+        {
+            if (assigned >= required)
+                break;
+
+            candidate.Assign(day, shift, zoneKey);
+            assigned++;
+        }
+
+        return assigned;
+    }
+
+    private static bool AssignSingle(List<EmployeeState> states, int day, int shift, string zoneKey)
+    {
+        var candidate = states
+            .Where(s => s.CanWork(day))
+            .OrderBy(s => s.WorkedDays)
+            .ThenBy(s => s.NightCount)
+            .ThenBy(s => s.Name)
+            .FirstOrDefault();
+
+        if (candidate == null)
+            return false;
+
+        candidate.Assign(day, shift, zoneKey);
+        return true;
+    }
+
+    private static bool AssignRotatingNight(
+        List<EmployeeState> rotationPool,
+        int day,
+        ref int rotationIndex)
+    {
+        if (rotationPool.Count == 0)
+            return false;
+
+        int startIndex = rotationIndex % rotationPool.Count;
+        int attempts = 0;
+        int index = startIndex;
+
+        while (attempts < rotationPool.Count)
+        {
+            var candidate = rotationPool[index];
+            if (candidate.CanWork(day))
+            {
+                candidate.Assign(day, 0, "ENT");
+                rotationIndex = (index + 1) % rotationPool.Count;
+                return true;
+            }
+
+            index = (index + 1) % rotationPool.Count;
+            attempts++;
+        }
+
+        return false;
+    }
+
+    private static List<TurnoRow> FinalizeAssignments(List<EmployeeState> states)
+    {
         foreach (var state in states)
         {
             if (state.IsHoliday)
@@ -161,104 +313,7 @@ public static class TurnosPreviewGenerator
         return states.Select(s => s.ToRow()).ToList();
     }
 
-    private static int AssignByLeastWorked(
-        List<EmployeeState> states,
-        int day,
-        int shift,
-        int required,
-        int[,] staffing,
-        string zoneKey)
-    {
-        int assigned = 0;
-        var candidates = states
-            .Where(s => s.CanWork(day))
-            .OrderBy(s => s.WorkedDays)
-            .ThenBy(s => s.NightCount)
-            .ThenBy(s => s.Name)
-            .ToList();
-
-        foreach (var candidate in candidates)
-        {
-            if (assigned >= required)
-                break;
-
-            candidate.Assign(day, shift, zoneKey);
-            staffing[day, shift]++;
-            assigned++;
-        }
-
-        return assigned;
-    }
-
-    private static int AssignWithRotation(
-        List<EmployeeState> rotationPool,
-        int day,
-        int shift,
-        int required,
-        int[,] staffing,
-        string zoneKey,
-        ref int rotationIndex)
-    {
-        int assigned = 0;
-        if (rotationPool.Count == 0)
-            return 0;
-
-        int startIndex = rotationIndex % rotationPool.Count;
-        int attempts = 0;
-        int index = startIndex;
-
-        while (assigned < required && attempts < rotationPool.Count * 2)
-        {
-            var candidate = rotationPool[index];
-            if (candidate.CanWork(day))
-            {
-                candidate.Assign(day, shift, zoneKey);
-                staffing[day, shift]++;
-                assigned++;
-            }
-
-            index = (index + 1) % rotationPool.Count;
-            attempts++;
-        }
-
-        rotationIndex = (startIndex + assigned) % rotationPool.Count;
-        return assigned;
-    }
-
-    private static bool TryAssignExtraShift(
-        EmployeeState state,
-        List<EmployeeState> allStates,
-        int[,] staffing,
-        string zoneKey)
-    {
-        for (int d = 0; d < 7; d++)
-        {
-            if (!state.CanWork(d))
-                continue;
-
-            int shift = GetLowestStaffingShift(d, staffing);
-            state.Assign(d, shift, zoneKey);
-            staffing[d, shift]++;
-            return true;
-        }
-
-        return false;
-    }
-
-    private static int GetLowestStaffingShift(int day, int[,] staffing)
-    {
-        int minShift = 0;
-        int minValue = staffing[day, 0];
-        for (int t = 1; t < 3; t++)
-        {
-            if (staffing[day, t] < minValue)
-            {
-                minValue = staffing[day, t];
-                minShift = t;
-            }
-        }
-        return minShift;
-    }
+    private readonly record struct ExtraSlot(int DayIndex, int Turn, int Work, int ExtraRequired);
 
     private class EmployeeState
     {

@@ -83,7 +83,7 @@ public partial class GenerarTurnosWindow : Window
             return;
         }
 
-        txtWarnings.Text = "FALTA PERSONAL: " + string.Join(" | ", warnings);
+        txtWarnings.Text = string.Join(" | ", warnings);
         txtWarnings.Visibility = Visibility.Visible;
     }
 

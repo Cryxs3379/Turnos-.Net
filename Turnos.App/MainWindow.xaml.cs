@@ -449,23 +449,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             finSemana = inicioSemana.AddDays(6);
         }
 
-        var diasSemana = Enumerable.Range(0, 7).Select(d => inicioSemana.AddDays(d)).ToList();
-        var resumenDict = ResumenDias.ToDictionary(r => r.Dia, r => r);
-
-        var noctWork = new int[7];
-        var manWork = new int[7];
-        var tarWork = new int[7];
-
-        for (int d = 0; d < 7; d++)
-        {
-            if (resumenDict.TryGetValue(diasSemana[d], out var resumen))
-            {
-                noctWork[d] = resumen.Noct_Tot;
-                manWork[d] = resumen.Man_Tot;
-                tarWork[d] = resumen.Tar_Tot;
-            }
-        }
-
         var empleadosExcel = new List<EmployeeItem>();
         var modulos = new List<ModuloVacacion>();
         var asignacionesModulos = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -487,10 +470,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         var result = TurnosPreviewGenerator.Generate(
             inicioSemana,
-            diasSemana,
-            noctWork,
-            manWork,
-            tarWork,
+            finSemana,
+            ResumenDias,
             recepcion,
             entradas);
 
