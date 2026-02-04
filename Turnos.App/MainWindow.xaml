@@ -70,6 +70,11 @@
                                 Click="BtnCargar_Click"
                                 Style="{DynamicResource MaterialDesignRaisedButton}"/>
 
+                        <Button x:Name="btnGenerarTurnos" Content="Generar turnos" MinWidth="160" Height="40"
+                                Margin="0,0,12,0"
+                                Click="BtnGenerarTurnos_Click"
+                                Style="{DynamicResource MaterialDesignOutlinedButton}"/>
+
                         <TextBlock x:Name="txtEstado" Text="Listo"
                                    VerticalAlignment="Center"
                                    Margin="12,0,0,0"

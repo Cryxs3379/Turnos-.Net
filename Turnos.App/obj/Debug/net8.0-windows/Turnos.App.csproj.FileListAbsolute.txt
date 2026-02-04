@@ -83,3 +83,5 @@ D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\ref
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.pdb
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\Turnos.App.genruntimeconfig.cache
 D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\ref\Turnos.App.dll
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\GenerarTurnosWindow.baml
+D:\Hellehollis\Nikole Turnos\Turnos .Net\Turnos.App\obj\Debug\net8.0-windows\GenerarTurnosWindow.g.cs

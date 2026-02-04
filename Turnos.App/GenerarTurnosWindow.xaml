@@ -1,0 +1,109 @@
+<Window x:Class="Turnos.App.GenerarTurnosWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Turnos semana"
+        Height="850"
+        Width="1200"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource MaterialDesignBackground}"
+        TextElement.FontSize="14">
+
+    <Window.Resources>
+        <Style x:Key="ShiftCellTextStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="OFF">
+                    <Setter Property="Background" Value="#F0F0F0"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="HOLYDAYS">
+                    <Setter Property="Background" Value="#FFF9E1"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock x:Name="txtTitle" FontSize="20" FontWeight="SemiBold"/>
+            <TextBlock x:Name="txtSubtitle" Opacity="0.7"/>
+        </StackPanel>
+
+        <TextBlock x:Name="txtWarnings"
+                   Grid.Row="1"
+                   Visibility="Collapsed"
+                   Foreground="#C62828"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,8"/>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="6"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <materialDesign:Card Grid.Row="0" Padding="0">
+                <Border CornerRadius="10" Background="{DynamicResource MaterialDesignPaper}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="RECEPCIÓN" FontWeight="SemiBold" Margin="12,10,12,8"/>
+                        <DataGrid x:Name="dgvRecepcion"
+                                  Grid.Row="1"
+                                  ItemsSource="{Binding TurnosRecepcion}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  FrozenColumnCount="1"
+                                  Style="{DynamicResource MaterialDesignDataGrid}"/>
+                    </Grid>
+                </Border>
+            </materialDesign:Card>
+
+            <GridSplitter Grid.Row="1"
+                          Height="6"
+                          HorizontalAlignment="Stretch"
+                          Background="{DynamicResource MaterialDesignDivider}"
+                          ResizeDirection="Rows"
+                          ShowsPreview="True"/>
+
+            <materialDesign:Card Grid.Row="2" Padding="0">
+                <Border CornerRadius="10" Background="{DynamicResource MaterialDesignPaper}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="ENTRADAS" FontWeight="SemiBold" Margin="12,10,12,8"/>
+                        <DataGrid x:Name="dgvEntradas"
+                                  Grid.Row="1"
+                                  ItemsSource="{Binding TurnosEntradas}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  FrozenColumnCount="1"
+                                  Style="{DynamicResource MaterialDesignDataGrid}"/>
+                    </Grid>
+                </Border>
+            </materialDesign:Card>
+        </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Cerrar" MinWidth="120" Height="36" Click="BtnCerrar_Click"
+                    Style="{DynamicResource MaterialDesignOutlinedButton}"/>
+        </StackPanel>
+    </Grid>
+</Window>

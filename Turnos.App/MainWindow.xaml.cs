@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,6 +23,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly VacationExcelReader _excelReader;
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _isWorkerMode = false;
+
+    private static readonly string[] FixedRecepcionEmployees = new[]
+    {
+        "Alex", "David", "Elena", "Marco", "Jesús", "Nicole", "Soledad", "Vero",
+        "Julie", "Emilio", "Malik", "Jonathan", "Adrian", "Lucía", "Giada"
+    };
+
+    private static readonly string[] FixedEntradasEmployees = new[]
+    {
+        "Rocío Recio", "Alberto", "Yanira", "Andy", "José Miguel"
+    };
 
     // Colecciones para grids de 3 columnas
     public ObservableCollection<GridRow3> EntradasParking { get; } = new();
@@ -414,6 +427,80 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await CargarTodosLosDatosAsync(_cancellationTokenSource.Token);
     }
 
+    private async void BtnGenerarTurnos_Click(object sender, RoutedEventArgs e)
+    {
+        if (dpFechaInicio.SelectedDate == null || dpFechaFin.SelectedDate == null || ResumenDias.Count == 0)
+        {
+            MessageBox.Show("Carga una semana primero", "Turnos", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var fechaInicio = dpFechaInicio.SelectedDate.Value.Date;
+        var fechaFin = dpFechaFin.SelectedDate.Value.Date;
+        if (fechaFin < fechaInicio)
+        {
+            (fechaInicio, fechaFin) = (fechaFin, fechaInicio);
+        }
+
+        var inicioSemana = DateOnly.FromDateTime(fechaInicio);
+        var finSemana = DateOnly.FromDateTime(fechaFin);
+        if ((finSemana.DayNumber - inicioSemana.DayNumber) != 6)
+        {
+            finSemana = inicioSemana.AddDays(6);
+        }
+
+        var diasSemana = Enumerable.Range(0, 7).Select(d => inicioSemana.AddDays(d)).ToList();
+        var resumenDict = ResumenDias.ToDictionary(r => r.Dia, r => r);
+
+        var noctWork = new int[7];
+        var manWork = new int[7];
+        var tarWork = new int[7];
+
+        for (int d = 0; d < 7; d++)
+        {
+            if (resumenDict.TryGetValue(diasSemana[d], out var resumen))
+            {
+                noctWork[d] = resumen.Noct_Tot;
+                manWork[d] = resumen.Man_Tot;
+                tarWork[d] = resumen.Tar_Tot;
+            }
+        }
+
+        var empleadosExcel = new List<EmployeeItem>();
+        var modulos = new List<ModuloVacacion>();
+        var asignacionesModulos = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            empleadosExcel = await _excelReader.GetAsignacionesAsync();
+            modulos = await _excelReader.GetModulosAsync();
+            asignacionesModulos = await _excelReader.GetAsignacionesModulosAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[Turnos] Error al cargar Excel: {ex.Message}");
+        }
+
+        var holidaySet = BuildHolidaySet(asignacionesModulos, modulos, inicioSemana, finSemana);
+        var recepcion = BuildEmployeesForZone("RECEPCION", empleadosExcel, holidaySet, FixedRecepcionEmployees);
+        var entradas = BuildEmployeesForZone("ENTRADAS", empleadosExcel, holidaySet, FixedEntradasEmployees);
+
+        var result = TurnosPreviewGenerator.Generate(
+            inicioSemana,
+            diasSemana,
+            noctWork,
+            manWork,
+            tarWork,
+            recepcion,
+            entradas);
+
+        var modal = new GenerarTurnosWindow(inicioSemana, finSemana, result.TurnosRecepcion, result.TurnosEntradas, result.Warnings)
+        {
+            Owner = this
+        };
+        modal.ShowDialog();
+    }
+
     private async Task CargarTodosLosDatosAsync(CancellationToken ct)
     {
         var hayError = false;
@@ -793,6 +880,132 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
 
     #endregion
+
+    private static List<TurnoEmployee> BuildEmployeesForZone(
+        string zone,
+        IEnumerable<EmployeeItem> excelEmployees,
+        HashSet<string> holidaySet,
+        IReadOnlyList<string> fixedEmployees)
+    {
+        var map = new Dictionary<string, (string Name, string Zone, bool FromExcel)>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var employee in excelEmployees)
+        {
+            var zoneNormalized = NormalizeZone(employee.Zona);
+            if (zoneNormalized != "RECEPCION" && zoneNormalized != "ENTRADAS")
+                continue;
+
+            var key = NormalizeName(employee.Name);
+            if (string.IsNullOrWhiteSpace(key))
+                continue;
+
+            map[key] = (employee.Name.Trim(), zoneNormalized, true);
+        }
+
+        foreach (var name in fixedEmployees)
+        {
+            var key = NormalizeName(name);
+            if (string.IsNullOrWhiteSpace(key))
+                continue;
+
+            if (!map.ContainsKey(key))
+            {
+                map[key] = (name.Trim(), zone, false);
+            }
+        }
+
+        return map.Values
+            .Where(v => string.Equals(v.Zone, zone, StringComparison.OrdinalIgnoreCase))
+            .Select(v => new TurnoEmployee(v.Name, holidaySet.Contains(NormalizeName(v.Name))))
+            .OrderBy(v => v.Name)
+            .ToList();
+    }
+
+    private static HashSet<string> BuildHolidaySet(
+        Dictionary<string, List<string>> asignaciones,
+        List<ModuloVacacion> modulos,
+        DateOnly inicioSemana,
+        DateOnly finSemana)
+    {
+        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (asignaciones.Count == 0 || modulos.Count == 0)
+        {
+            return result;
+        }
+
+        var modulosDict = modulos.ToDictionary(m => NormalizeModulo(m.Modulo), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var asignacion in asignaciones)
+        {
+            var empleadoKey = NormalizeName(asignacion.Key);
+            if (string.IsNullOrWhiteSpace(empleadoKey))
+                continue;
+
+            foreach (var modulo in asignacion.Value)
+            {
+                var modKey = NormalizeModulo(modulo);
+                if (!modulosDict.TryGetValue(modKey, out var moduloVacacion))
+                    continue;
+
+                var modInicio = DateOnly.FromDateTime(moduloVacacion.FechaInicio);
+                var modFin = DateOnly.FromDateTime(moduloVacacion.FechaFin);
+
+                if (modInicio <= finSemana && modFin >= inicioSemana)
+                {
+                    result.Add(empleadoKey);
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static string NormalizeZone(string zona)
+    {
+        if (string.IsNullOrWhiteSpace(zona))
+            return string.Empty;
+
+        var normalized = RemoveDiacritics(zona).Trim().ToUpperInvariant();
+        if (normalized.Contains("RECEP"))
+            return "RECEPCION";
+        if (normalized.Contains("ENTR"))
+            return "ENTRADAS";
+        return string.Empty;
+    }
+
+    private static string NormalizeModulo(string modulo)
+    {
+        if (string.IsNullOrWhiteSpace(modulo))
+            return string.Empty;
+
+        return RemoveDiacritics(modulo).Trim().ToUpperInvariant();
+    }
+
+    private static string NormalizeName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        var collapsed = string.Join(" ", name.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        return RemoveDiacritics(collapsed).Trim().ToUpperInvariant();
+    }
+
+    private static string RemoveDiacritics(string text)
+    {
+        var normalized = text.Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder();
+
+        foreach (var c in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            {
+                builder.Append(c);
+            }
+        }
+
+        return builder.ToString().Normalize(NormalizationForm.FormC);
+    }
 
     #region Procesamiento de totales
 
