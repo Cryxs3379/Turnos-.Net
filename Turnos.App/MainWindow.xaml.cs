@@ -198,6 +198,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // Modo trabajadores: mostrar panel izquierdo con ancho fijo y panel derecho de trabajadores
         drawerColumn.Width = new GridLength(380);
         RightContent.Visibility = Visibility.Collapsed;
+        RightTotalesContent.Visibility = Visibility.Collapsed;
         RightWorkerContent.Visibility = Visibility.Visible;
         btnCargar.IsEnabled = false;
         progressBar.Visibility = Visibility.Collapsed;
